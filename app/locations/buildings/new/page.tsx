@@ -1,0 +1,110 @@
+import { prisma } from "@/lib/prisma";
+import { createBuilding } from "@/app/actions";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+
+interface Props {
+  searchParams: Promise<{ siteId?: string }>;
+}
+
+export default async function NewBuildingPage({ searchParams }: Props) {
+  const { siteId } = await searchParams;
+
+  if (!siteId) {
+    redirect('/locations')
+  }
+
+  const site = await prisma.site.findUnique({
+    where: { id: siteId },
+    include: { client: true },
+  });
+
+  if (!site) {
+    notFound();
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
+      <div className="max-w-2xl mx-auto">
+        {/* Back Link */}
+        <Link 
+          href="/locations" 
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 group transition-all duration-200"
+        >
+          <span className="group-hover:-translate-x-1 transition-transform duration-200">←</span>
+          <span className="font-medium">กลับ</span>
+        </Link>
+
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+              <span className="text-2xl">🏛️</span>
+            </div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">
+              เพิ่มอาคารใหม่
+            </h1>
+          </div>
+        </div>
+
+        {/* Site Info Card */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 mb-6 shadow-sm">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">🏢</span>
+            <div>
+              <p className="text-sm text-gray-600 mb-1">สาขา</p>
+              <p className="font-semibold text-gray-900">{site.name}</p>
+              <p className="text-sm text-gray-600 mt-1">{site.client.name}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Form */}
+        <form action={createBuilding} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-gray-100">
+          <input type="hidden" name="siteId" value={siteId} />
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                ชื่ออาคาร <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                required
+                autoFocus
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white"
+                placeholder="เช่น อาคาร A (Main Wing), อาคารสำนักงาน"
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                💡 ใส่ชื่อที่สื่อความหมาย เช่น ระบุ Wing หรือจุดประสงค์การใช้งาน
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
+              <button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <span>✓</span>
+                <span>บันทึก</span>
+              </button>
+              <Link
+                href="/locations"
+                className="sm:flex-none px-8 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium text-center transition-all duration-200 text-gray-700"
+              >
+                ยกเลิก
+              </Link>
+            </div>
+          </div>
+        </form>
+
+        {/* Helper Text */}
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p>หลังจากสร้างอาคารแล้ว คุณสามารถเพิ่มชั้นและห้องภายในอาคารได้</p>
+        </div>
+      </div>
+    </div>
+  );
+}

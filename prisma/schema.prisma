@@ -1,0 +1,195 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  // แนะนำให้ลบบรรทัด output ออกเพื่อให้ Next.js หาเจออัตโนมัติครับ
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// 1. User & Role (ระบบผู้ใช้งาน)
+// ==========================================
+
+enum UserRole {
+  ADMIN // ผู้ดูแลระบบ (คนสร้างเว็บ)
+  TECHNICIAN // ช่าง
+  CLIENT // ลูกค้า
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  fullName  String?
+  role      UserRole @default(TECHNICIAN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  siteId String? // สำหรับ CLIENT role: 1 User = 1 Site
+  site   Site?   @relation(fields: [siteId], references: [id])
+
+  jobItems JobItem[]
+}
+
+// ==========================================
+// 2. Location Hierarchy (สถานที่)
+// ==========================================
+
+model Client {
+  id          String   @id @default(cuid())
+  name        String
+  contactInfo String?
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+
+  sites Site[]
+}
+
+model Site {
+  id        String  @id @default(cuid())
+  name      String
+  address   String?
+  latitude  Float?
+  longitude Float?
+  clientId  String
+  client    Client  @relation(fields: [clientId], references: [id])
+
+  users      User[] // User ที่ดูแล Site นี้ (CLIENT role)
+  buildings  Building[]
+  workOrders WorkOrder[]
+}
+
+model Building {
+  id     String @id @default(cuid())
+  name   String
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id])
+
+  floors Floor[]
+}
+
+model Floor {
+  id         String   @id @default(cuid())
+  name       String
+  buildingId String
+  building   Building @relation(fields: [buildingId], references: [id])
+
+  rooms Room[]
+}
+
+model Room {
+  id      String @id @default(cuid())
+  name    String
+  floorId String
+  floor   Floor  @relation(fields: [floorId], references: [id])
+
+  assets Asset[]
+}
+
+// ==========================================
+// 3. Asset Inventory (ทะเบียนแอร์)
+// ==========================================
+
+enum AssetStatus {
+  ACTIVE
+  BROKEN
+  RETIRED
+}
+
+model Asset {
+  id          String      @id @default(cuid())
+  qrCode      String      @unique
+  brand       String?
+  model       String?
+  serialNo    String?
+  btu         Int?
+  installDate DateTime?
+  status      AssetStatus @default(ACTIVE)
+
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+
+  jobItems JobItem[]
+}
+
+// ==========================================
+// 4. Operations (การทำงาน)
+// ==========================================
+
+enum JobType {
+  PM
+  CM
+  INSTALL
+}
+
+enum OrderStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model WorkOrder {
+  id            String      @id @default(cuid())
+  jobType       JobType
+  scheduledDate DateTime
+  status        OrderStatus @default(OPEN)
+
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id])
+
+  assignedTeam String?
+
+  jobItems  JobItem[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum JobItemStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  ISSUE_FOUND
+}
+
+model JobItem {
+  id     String        @id @default(cuid())
+  status JobItemStatus @default(PENDING)
+
+  workOrderId String
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id])
+
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id])
+
+  technicianId String?
+  technician   User?   @relation(fields: [technicianId], references: [id])
+
+  techNote  String?
+  startTime DateTime?
+  endTime   DateTime?
+
+  photos JobPhoto[]
+}
+
+enum PhotoType {
+  BEFORE
+  AFTER
+  DEFECT
+  METER
+}
+
+model JobPhoto {
+  id        String    @id @default(cuid())
+  url       String
+  type      PhotoType
+  createdAt DateTime  @default(now())
+
+  jobItemId String
+  jobItem   JobItem @relation(fields: [jobItemId], references: [id])
+}
