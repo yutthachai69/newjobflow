@@ -25,9 +25,9 @@ export default async function TechnicianPage() {
 
   const getStatusConfig = (status: string) => {
     if (status === "IN_PROGRESS") {
-      return { bg: "from-blue-500 to-indigo-600", text: "กำลังทำงาน", icon: "⚙️" };
+      return { bg: "from-blue-500 to-indigo-600", text: "กำลังทำงาน", icon: "" };
     }
-    return { bg: "from-gray-400 to-gray-500", text: "รอดำเนินการ", icon: "⏱️" };
+    return { bg: "from-gray-400 to-gray-500", text: "รอดำเนินการ", icon: "" };
   };
 
   return (

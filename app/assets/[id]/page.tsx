@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createMockMaintenance } from "@/app/actions"; // <--- Import มาใหม่
+import { getCurrentUser } from "@/lib/auth";
+import QRCodeDisplay from "./QRCodeDisplay";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -9,6 +10,11 @@ interface Props {
 
 export default async function AssetDetailPage({ params }: Props) {
   const { id } = await params;
+  const user = await getCurrentUser();
+
+  if (!user) {
+    notFound();
+  }
 
   const asset = await prisma.asset.findUnique({
     where: { id },
@@ -26,7 +32,13 @@ export default async function AssetDetailPage({ params }: Props) {
       },
       jobItems: {
         include: {
-          workOrder: true,
+          workOrder: {
+            include: {
+              site: {
+                include: { client: true },
+              },
+            },
+          },
           technician: true,
           photos: true,
         },
@@ -38,6 +50,16 @@ export default async function AssetDetailPage({ params }: Props) {
   if (!asset) {
     notFound();
   }
+
+  // Access Control: CLIENT can only view assets within their assigned site
+  if (user.role === 'CLIENT' && user.siteId !== asset.room.floor.building.siteId) {
+    notFound();
+  }
+
+  // สำหรับช่าง: ค้นหางานที่รอทำ (PENDING/IN_PROGRESS)
+  const pendingJobItems = asset.jobItems.filter(
+    (ji) => ji.status === 'PENDING' || ji.status === 'IN_PROGRESS'
+  );
 
   return (
     <div className="p-8 max-w-4xl mx-auto font-sans">
@@ -54,7 +76,6 @@ export default async function AssetDetailPage({ params }: Props) {
             <h1 className="text-3xl font-bold mt-2 text-gray-800">
               {asset.brand} - {asset.model}
             </h1>
-            <p className="text-gray-500 text-lg font-mono mt-1">QR: {asset.qrCode}</p>
           </div>
           <div className="text-right">
              <div className="text-sm text-gray-500">ขนาด BTU</div>
@@ -64,37 +85,154 @@ export default async function AssetDetailPage({ params }: Props) {
 
         <hr className="my-6 border-gray-200" />
 
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-2 gap-4 text-sm mb-6">
           <div>
             <p className="text-gray-500">สถานที่ติดตั้ง</p>
-            <p className="font-semibold text-lg">{asset.room.floor.building.site.name}</p>
-            <p>{asset.room.floor.building.name} / {asset.room.floor.name}</p>
-            <p>ห้อง: {asset.room.name}</p>
+            <p className="font-semibold text-lg text-gray-900">{asset.room.floor.building.site.name}</p>
+            <p className="text-gray-700">{asset.room.floor.building.name} → {asset.room.floor.name} → {asset.room.name}</p>
           </div>
           <div>
             <p className="text-gray-500">ข้อมูลเครื่อง</p>
-            <p>S/N: {asset.serialNo || "-"}</p>
-            <p>วันที่ติดตั้ง: {asset.installDate ? asset.installDate.toLocaleDateString('th-TH') : "-"}</p>
+            <p className="text-gray-700">S/N: {asset.serialNo || "-"}</p>
+            <p className="text-gray-700">วันที่ติดตั้ง: {asset.installDate ? asset.installDate.toLocaleDateString('th-TH') : "-"}</p>
           </div>
         </div>
+
+        {/* QR Code Display */}
+        <div className="mt-6">
+          <QRCodeDisplay 
+            qrCode={asset.qrCode} 
+            assetName={`${asset.brand || ''} ${asset.model || ''}`.trim() || asset.qrCode}
+          />
+        </div>
       </div>
 
-      {/* --- ส่วนปุ่มทดสอบ (เพิ่มใหม่) --- */}
-      <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center">
-        <div>
-           <h3 className="font-bold text-blue-900">🔧 พื้นที่ทดสอบระบบ (Demo)</h3>
-           <p className="text-sm text-blue-700">กดปุ่มนี้เพื่อจำลองว่าช่างเพิ่งปิดงานซ่อมเสร็จ</p>
+      {/* สำหรับช่าง: แสดงงานที่รอทำ */}
+      {user.role === 'TECHNICIAN' && pendingJobItems.length > 0 && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">⚡</span>
+            <h2 className="text-xl font-bold text-gray-900">
+              งานที่รอทำ ({pendingJobItems.length} งาน)
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {pendingJobItems.map((jobItem) => (
+              <Link
+                key={jobItem.id}
+                href={`/technician/job-item/${jobItem.id}`}
+                className="block bg-white rounded-lg p-4 border border-yellow-200 hover:border-yellow-400 hover:shadow-md transition-all"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 mb-1">
+                      {jobItem.workOrder.jobType} - {jobItem.workOrder.site.name}
+                    </div>
+                    <div className="text-sm text-gray-600 mb-1">
+                      {jobItem.workOrder.site.client.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      วันนัดหมาย: {new Date(jobItem.workOrder.scheduledDate).toLocaleDateString('th-TH')}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        jobItem.status === 'PENDING'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {jobItem.status === 'PENDING' ? 'รอดำเนินการ' : 'กำลังทำงาน'}
+                    </span>
+                    <span className="text-xs text-blue-600 font-medium">
+                      เริ่มงาน →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-        <form action={createMockMaintenance.bind(null, asset.id)}>
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">
-               + เพิ่มประวัติงานซ่อมเดี๋ยวนี้
-            </button>
-        </form>
-      </div>
-      {/* ----------------------------- */}
+      )}
+
+      {/* สำหรับช่าง: แสดงข้อความเมื่อไม่มีงานรอทำ */}
+      {user.role === 'TECHNICIAN' && pendingJobItems.length === 0 && (
+        <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-6 mb-6">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">✅</span>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">ไม่มีงานที่รอทำ</h3>
+              <p className="text-sm text-gray-600">เครื่องนี้ไม่มีงานที่ต้องดำเนินการ</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* สำหรับช่าง: แสดงงานที่รอทำ */}
+      {user.role === 'TECHNICIAN' && pendingJobItems.length > 0 && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-6 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">⚡</span>
+            <h2 className="text-xl font-bold text-gray-900">
+              งานที่รอทำ ({pendingJobItems.length} งาน)
+            </h2>
+          </div>
+          <div className="space-y-3">
+            {pendingJobItems.map((jobItem) => (
+              <Link
+                key={jobItem.id}
+                href={`/technician/job-item/${jobItem.id}`}
+                className="block bg-white rounded-lg p-4 border border-yellow-200 hover:border-yellow-400 hover:shadow-md transition-all"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 mb-1">
+                      {jobItem.workOrder.jobType} - {jobItem.workOrder.site.name}
+                    </div>
+                    <div className="text-sm text-gray-600 mb-1">
+                      {jobItem.workOrder.site.client.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      วันนัดหมาย: {new Date(jobItem.workOrder.scheduledDate).toLocaleDateString('th-TH')}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        jobItem.status === 'PENDING'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {jobItem.status === 'PENDING' ? 'รอดำเนินการ' : 'กำลังทำงาน'}
+                    </span>
+                    <span className="text-xs text-blue-600 font-medium">
+                      เริ่มงาน →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* สำหรับช่าง: แสดงข้อความเมื่อไม่มีงานรอทำ */}
+      {user.role === 'TECHNICIAN' && pendingJobItems.length === 0 && (
+        <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-6 mb-6">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">✅</span>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">ไม่มีงานที่รอทำ</h3>
+              <p className="text-sm text-gray-600">เครื่องนี้ไม่มีงานที่ต้องดำเนินการ</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <h2 className="text-xl font-bold mb-4 flex items-center">
-        🛠️ ประวัติการบำรุงรักษา
+        ประวัติการบำรุงรักษา
         <span className="ml-2 text-sm font-normal text-gray-500">({asset.jobItems.length} รายการ)</span>
       </h2>
 
@@ -125,7 +263,7 @@ export default async function AssetDetailPage({ params }: Props) {
                       .map((photo) => (
                         <div key={photo.id} className="relative">
                           <div className="text-xs font-semibold mb-1 text-gray-600 uppercase">
-                            {photo.type === 'BEFORE' ? '🔵 ก่อนทำ' : '🟢 หลังทำ'}
+                            {photo.type === 'BEFORE' ? 'ก่อนทำ' : 'หลังทำ'}
                           </div>
                           <img
                             src={photo.url}
@@ -147,7 +285,7 @@ export default async function AssetDetailPage({ params }: Props) {
                         .map((photo) => (
                           <div key={photo.id} className="relative">
                             <div className="text-xs font-semibold mb-1 text-gray-600">
-                              {photo.type === 'DEFECT' ? '⚠️ จุดชำรุด' : '📊 ค่าเกจ'}
+                              {photo.type === 'DEFECT' ? 'จุดชำรุด' : 'ค่าเกจ'}
                             </div>
                             <img
                               src={photo.url}

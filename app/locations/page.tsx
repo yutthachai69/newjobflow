@@ -1,7 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function LocationsPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  // CLIENT ไม่สามารถเข้าถึงหน้า Locations (ใช้ดูข้อมูลผ่าน Dashboard/Assets แทน)
+  if (user.role === 'CLIENT') {
+    redirect('/');
+  }
+
+  // ADMIN และ TECHNICIAN: ดูทั้งหมด (หรืออาจจะจำกัดเฉพาะที่เกี่ยวข้อง)
   const clients = await prisma.client.findMany({
     include: {
       sites: {
@@ -34,7 +48,7 @@ export default async function LocationsPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">📍 จัดการสถานที่</h1>
+          <h1 className="text-3xl font-bold text-gray-900">จัดการสถานที่</h1>
           <Link
             href="/locations/clients/new"
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium"
@@ -46,7 +60,6 @@ export default async function LocationsPage() {
         <div className="space-y-6">
           {clients.length === 0 ? (
             <div className="bg-white rounded-lg shadow p-12 text-center">
-              <div className="text-4xl mb-4">🏢</div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">ยังไม่มีข้อมูลลูกค้า</h2>
               <p className="text-gray-600 mb-4">เริ่มต้นโดยการเพิ่มลูกค้าใหม่</p>
               <Link
@@ -64,20 +77,20 @@ export default async function LocationsPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        🏢 {client.name}
+                        {client.name}
                       </h2>
                       {client.contactInfo && (
-                        <p className="text-gray-600">📞 {client.contactInfo}</p>
+                        <p className="text-gray-600">{client.contactInfo}</p>
                       )}
                       <p className="text-sm text-gray-500 mt-1">
-                        {client._count.sites} สาขา
+                        {client._count.sites} สถานที่
                       </p>
                     </div>
                     <Link
                       href={`/locations/sites/new?clientId=${client.id}`}
                       className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
                     >
-                      + เพิ่มสาขา
+                      + เพิ่มสถานที่
                     </Link>
                   </div>
                 </div>
@@ -86,12 +99,12 @@ export default async function LocationsPage() {
                 <div className="p-6">
                   {client.sites.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                      <p>ยังไม่มีสาขา</p>
+                      <p>ยังไม่มีสถานที่</p>
                       <Link
                         href={`/locations/sites/new?clientId=${client.id}`}
                         className="text-blue-600 hover:underline mt-2 inline-block"
                       >
-                        + เพิ่มสาขาใหม่
+                        + เพิ่มสถานที่ใหม่
                       </Link>
                     </div>
                   ) : (
@@ -102,10 +115,10 @@ export default async function LocationsPage() {
                           <div className="flex justify-between items-start mb-4">
                             <div>
                               <h3 className="text-lg font-bold text-gray-900 mb-1">
-                                📍 {site.name}
+                                {site.name}
                               </h3>
                               {site.address && (
-                                <p className="text-sm text-gray-600">📍 {site.address}</p>
+                                <p className="text-sm text-gray-600">{site.address}</p>
                               )}
                             </div>
                             <Link
@@ -217,3 +230,4 @@ export default async function LocationsPage() {
     </div>
   );
 }
+

@@ -8,6 +8,16 @@ interface Props {
 }
 
 export default async function NewBuildingPage({ searchParams }: Props) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  if (user.role !== 'ADMIN') {
+    redirect('/locations');
+  }
+
   const { siteId } = await searchParams;
 
   if (!siteId) {
@@ -39,7 +49,6 @@ export default async function NewBuildingPage({ searchParams }: Props) {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-              <span className="text-2xl">🏛️</span>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">
               เพิ่มอาคารใหม่
@@ -52,7 +61,7 @@ export default async function NewBuildingPage({ searchParams }: Props) {
           <div className="flex items-start gap-3">
             <span className="text-2xl">🏢</span>
             <div>
-              <p className="text-sm text-gray-600 mb-1">สาขา</p>
+              <p className="text-sm text-gray-600 mb-1">สถานที่</p>
               <p className="font-semibold text-gray-900">{site.name}</p>
               <p className="text-sm text-gray-600 mt-1">{site.client.name}</p>
             </div>
@@ -71,9 +80,8 @@ export default async function NewBuildingPage({ searchParams }: Props) {
               <input
                 type="text"
                 name="name"
-                required
                 autoFocus
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white text-gray-900 placeholder:text-gray-400"
                 placeholder="เช่น อาคาร A (Main Wing), อาคารสำนักงาน"
               />
               <p className="mt-2 text-xs text-gray-500">

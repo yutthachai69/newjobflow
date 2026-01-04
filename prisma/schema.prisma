@@ -193,3 +193,15 @@ model JobPhoto {
   jobItemId String
   jobItem   JobItem @relation(fields: [jobItemId], references: [id])
 }
+
+// ==========================================
+// 5. Contact Information (ข้อมูลการติดต่อ)
+// ==========================================
+
+model ContactInfo {
+  id        String   @id @default(cuid())
+  email     String   @default("support@airservice.com")
+  phone     String   @default("02-XXX-XXXX")
+  hours     String   @default("จันทร์-ศุกร์ 08:00-17:00 น.")
+  updatedAt DateTime @updatedAt
+}

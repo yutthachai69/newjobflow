@@ -8,6 +8,16 @@ interface Props {
 }
 
 export default async function NewFloorPage({ searchParams }: Props) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  if (user.role !== 'ADMIN') {
+    redirect('/locations');
+  }
+
   const { buildingId } = await searchParams;
 
   if (!buildingId) {
@@ -43,7 +53,6 @@ export default async function NewFloorPage({ searchParams }: Props) {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md">
-              <span className="text-2xl">🏢</span>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-emerald-900 bg-clip-text text-transparent">
               เพิ่มชั้นใหม่
@@ -54,12 +63,10 @@ export default async function NewFloorPage({ searchParams }: Props) {
         {/* Building Info Card */}
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-5 mb-6 shadow-sm">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">🏛️</span>
             <div className="flex-1">
               <p className="text-sm text-gray-600 mb-1">อาคาร</p>
               <p className="font-semibold text-gray-900 text-lg">{building.name}</p>
               <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
-                <span>📍</span>
                 <span>{building.site.name}</span>
                 <span className="text-gray-400">•</span>
                 <span>{building.site.client.name}</span>
@@ -80,9 +87,8 @@ export default async function NewFloorPage({ searchParams }: Props) {
               <input
                 type="text"
                 name="name"
-                required
                 autoFocus
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white text-gray-900 placeholder:text-gray-400"
                 placeholder="เช่น ชั้น 1, G (Ground Floor), ชั้น 2, Rooftop"
               />
               <p className="mt-2 text-xs text-gray-500">
@@ -93,7 +99,6 @@ export default async function NewFloorPage({ searchParams }: Props) {
             {/* Examples Box */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <span className="text-lg">📝</span>
                 <div className="text-sm">
                   <p className="font-semibold text-gray-900 mb-2">ตัวอย่างการตั้งชื่อ</p>
                   <div className="space-y-1 text-gray-600">
@@ -111,7 +116,6 @@ export default async function NewFloorPage({ searchParams }: Props) {
                 type="submit"
                 className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2"
               >
-                <span>✓</span>
                 <span>บันทึก</span>
               </button>
               <Link

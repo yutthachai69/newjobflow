@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { updateWorkOrderStatus } from "@/app/actions";
+import { getCurrentUser } from "@/lib/auth";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -9,6 +10,11 @@ interface Props {
 
 export default async function WorkOrderDetailPage({ params }: Props) {
   const { id } = await params;
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   const workOrder = await prisma.workOrder.findUnique({
     where: { id },
@@ -24,7 +30,11 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                 include: {
                   floor: {
                     include: {
-                      building: true,
+                      building: {
+                        include: {
+                          site: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -32,7 +42,9 @@ export default async function WorkOrderDetailPage({ params }: Props) {
             },
           },
           technician: true,
-          photos: true,
+          photos: {
+            orderBy: { createdAt: 'asc' },
+          },
         },
       },
     },
@@ -42,6 +54,13 @@ export default async function WorkOrderDetailPage({ params }: Props) {
     notFound();
   }
 
+  // Access Control: CLIENT สามารถดูได้เฉพาะ Work Order ใน Site ของตัวเอง
+  if (user.role === 'CLIENT') {
+    if (!user.siteId || workOrder.siteId !== user.siteId) {
+      notFound();
+    }
+  }
+
   const doneCount = workOrder.jobItems.filter((j) => j.status === "DONE").length;
   const progressPercent = workOrder.jobItems.length > 0
     ? (doneCount / workOrder.jobItems.length) * 100
@@ -49,20 +68,20 @@ export default async function WorkOrderDetailPage({ params }: Props) {
 
   const getWOStatusConfig = (status: string) => {
     const configs = {
-      COMPLETED: { bg: "from-green-500 to-emerald-600", text: "เสร็จสิ้น", icon: "✓" },
-      IN_PROGRESS: { bg: "from-blue-500 to-indigo-600", text: "กำลังทำงาน", icon: "⚙️" },
-      CANCELLED: { bg: "from-red-500 to-pink-600", text: "ยกเลิก", icon: "✕" },
-      OPEN: { bg: "from-gray-400 to-gray-500", text: "รอดำเนินการ", icon: "⏱️" },
+      COMPLETED: { bg: "from-green-500 to-emerald-600", text: "เสร็จสิ้น", icon: "" },
+      IN_PROGRESS: { bg: "from-blue-500 to-indigo-600", text: "กำลังทำงาน", icon: "" },
+      CANCELLED: { bg: "from-red-500 to-pink-600", text: "ยกเลิก", icon: "" },
+      OPEN: { bg: "from-gray-400 to-gray-500", text: "รอดำเนินการ", icon: "" },
     };
     return configs[status as keyof typeof configs] || configs.OPEN;
   };
 
   const getJobStatusConfig = (status: string) => {
     const configs = {
-      DONE: { bg: "from-green-500 to-emerald-600", text: "เสร็จสิ้น", icon: "✓" },
-      IN_PROGRESS: { bg: "from-blue-500 to-indigo-600", text: "กำลังทำ", icon: "⚙️" },
-      ISSUE_FOUND: { bg: "from-yellow-500 to-orange-600", text: "พบปัญหา", icon: "⚠️" },
-      PENDING: { bg: "from-gray-400 to-gray-500", text: "รอทำ", icon: "⏱️" },
+      DONE: { bg: "from-green-500 to-emerald-600", text: "เสร็จสิ้น", icon: "" },
+      IN_PROGRESS: { bg: "from-blue-500 to-indigo-600", text: "กำลังทำ", icon: "" },
+      ISSUE_FOUND: { bg: "from-yellow-500 to-orange-600", text: "พบปัญหา", icon: "" },
+      PENDING: { bg: "from-gray-400 to-gray-500", text: "รอทำ", icon: "" },
     };
     return configs[status as keyof typeof configs] || configs.PENDING;
   };
@@ -100,7 +119,6 @@ export default async function WorkOrderDetailPage({ params }: Props) {
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-gray-700">
-                  <span className="text-lg">🏢</span>
                   <span className="font-medium">{workOrder.site.name}</span>
                   <span className="text-gray-400">•</span>
                   <span className="text-gray-600">{workOrder.site.client.name}</span>
@@ -151,7 +169,6 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                     type="submit"
                     className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center gap-2"
                   >
-                    <span>▶️</span>
                     <span>เริ่มงาน</span>
                   </button>
                 </form>
@@ -162,7 +179,6 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                     type="submit"
                     className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center gap-2"
                   >
-                    <span>✓</span>
                     <span>เสร็จสิ้นงาน</span>
                   </button>
                 </form>
@@ -172,7 +188,6 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                   type="submit"
                   className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center gap-2"
                 >
-                  <span>✕</span>
                   <span>ยกเลิก</span>
                 </button>
               </form>
@@ -184,7 +199,6 @@ export default async function WorkOrderDetailPage({ params }: Props) {
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">📝</span>
               <h2 className="text-xl font-bold text-gray-900">
                 รายการงาน
               </h2>
@@ -201,7 +215,6 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                   <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <span className="text-2xl">❄️</span>
                         <Link
                           href={`/assets/${jobItem.asset.id}`}
                           className="font-bold text-blue-600 hover:text-blue-800 hover:underline text-lg"
@@ -213,7 +226,8 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600 mb-3 flex-wrap">
-                        <span>📍</span>
+                        <span>{jobItem.asset.room.floor.building.site.name}</span>
+                        <span className="text-gray-400">→</span>
                         <span>{jobItem.asset.room.floor.building.name}</span>
                         <span className="text-gray-400">→</span>
                         <span>{jobItem.asset.room.floor.name}</span>
@@ -223,7 +237,6 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                       {jobItem.techNote && (
                         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3">
                           <div className="flex items-start gap-2">
-                            <span className="text-lg">📝</span>
                             <p className="text-gray-700 text-sm flex-1">{jobItem.techNote}</p>
                           </div>
                         </div>
@@ -236,7 +249,6 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                       </div>
                       {jobItem.technician && (
                         <div className="text-xs text-gray-500 flex items-center gap-1">
-                          <span>👤</span>
                           <span>{jobItem.technician.fullName}</span>
                         </div>
                       )}
@@ -258,10 +270,10 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                             className="w-32 h-32 object-cover rounded-xl border-2 border-gray-200 group-hover:border-blue-300 transition-all duration-200"
                           />
                           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white text-xs px-2 py-1.5 rounded-b-xl font-semibold">
-                            {photo.type === "BEFORE" && "🔵 ก่อน"}
-                            {photo.type === "AFTER" && "🟢 หลัง"}
-                            {photo.type === "DEFECT" && "⚠️ ชำรุด"}
-                            {photo.type === "METER" && "📊 เกจ"}
+                            {photo.type === "BEFORE" && "ก่อน"}
+                            {photo.type === "AFTER" && "หลัง"}
+                            {photo.type === "DEFECT" && "ชำรุด"}
+                            {photo.type === "METER" && "เกจ"}
                           </div>
                         </div>
                       ))}

@@ -12,7 +12,6 @@ export default function WelcomePage() {
         {/* Header */}
         <div className="text-center mb-20">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-6 shadow-lg">
-            <span className="text-4xl">❄️</span>
           </div>
           <h1 className="text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-4">
             AirService Enterprise
@@ -43,7 +42,6 @@ export default function WelcomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
           <div className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-8 hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 hover:-translate-y-1">
             <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl mb-4 text-2xl shadow-md group-hover:scale-110 transition-transform duration-300">
-              📊
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">
               Dashboard แบบ Real-time
@@ -55,7 +53,6 @@ export default function WelcomePage() {
 
           <div className="group relative bg-white/60 backdrop-blur-sm rounded-2xl p-8 hover:bg-white hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-gray-200 hover:-translate-y-1">
             <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl mb-4 text-2xl shadow-md group-hover:scale-110 transition-transform duration-300">
-              📷
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">
               หลักฐานภาพ Before/After
@@ -150,7 +147,6 @@ export default function WelcomePage() {
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
               <div className="pl-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-3xl">🏢</span>
                   <h3 className="font-bold text-xl text-gray-900">Client</h3>
                 </div>
                 <p className="text-gray-600 leading-relaxed">

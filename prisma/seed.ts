@@ -1,5 +1,6 @@
 // prisma/seed.ts
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -18,11 +19,16 @@ async function main() {
   await prisma.client.deleteMany()
   await prisma.user.deleteMany()
 
-  // 2. สร้าง User (Admin, ช่าง, ลูกค้า)
+  // 2. Hash passwords
+  const adminPasswordHash = await bcrypt.hash('admin123', 10)
+  const techPasswordHash = await bcrypt.hash('password123', 10)
+  const clientPasswordHash = await bcrypt.hash('client123', 10)
+
+  // 3. สร้าง User (Admin, ช่าง, ลูกค้า)
   const adminUser = await prisma.user.create({
     data: {
       username: 'admin',
-      password: 'admin123', // ของจริงต้อง Hash
+      password: adminPasswordHash,
       fullName: 'ผู้ดูแลระบบ',
       role: 'ADMIN'
     }
@@ -31,7 +37,7 @@ async function main() {
   const techUser = await prisma.user.create({
     data: {
       username: 'tech1',
-      password: 'password123', // ของจริงต้อง Hash
+      password: techPasswordHash,
       fullName: 'สมชาย งานดี',
       role: 'TECHNICIAN'
     }
@@ -103,6 +109,18 @@ async function main() {
         status: 'ACTIVE',
         roomId: i <= 2 ? roomServer.id : roomLobby.id // แบ่งห้องกันอยู่
       }
+    })
+  }
+
+  // 9. สร้างข้อมูลการติดต่อ (Contact Info)
+  const existingContactInfo = await prisma.contactInfo.findFirst()
+  if (!existingContactInfo) {
+    await prisma.contactInfo.create({
+      data: {
+        email: 'support@airservice.com',
+        phone: '02-XXX-XXXX',
+        hours: 'จันทร์-ศุกร์ 08:00-17:00 น.',
+      },
     })
   }
 

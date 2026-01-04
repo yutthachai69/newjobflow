@@ -23,7 +23,11 @@ export default async function TechnicianWorkOrderPage({ params }: Props) {
                 include: {
                   floor: {
                     include: {
-                      building: true,
+                      building: {
+                        include: {
+                          site: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -75,14 +79,14 @@ export default async function TechnicianWorkOrderPage({ params }: Props) {
         {/* QR Code Input */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">
-            📷 สแกน QR Code หรือพิมพ์รหัส
+            สแกน QR Code หรือพิมพ์รหัส
           </h2>
           <form action={`/technician/work-order/${id}/scan`} method="GET" className="flex gap-2">
             <input
               type="text"
               name="qrCode"
               placeholder="พิมพ์หรือสแกน QR Code"
-              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder:text-gray-400"
               autoFocus
             />
             <button
@@ -100,7 +104,7 @@ export default async function TechnicianWorkOrderPage({ params }: Props) {
           {pendingJobs.length > 0 && (
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-3">
-                ⏳ รายการที่ยังไม่ทำ ({pendingJobs.length})
+                รายการที่ยังไม่ทำ ({pendingJobs.length})
               </h2>
               <div className="space-y-2">
                 {pendingJobs.map((jobItem) => (
@@ -118,7 +122,7 @@ export default async function TechnicianWorkOrderPage({ params }: Props) {
                           QR: {jobItem.asset.qrCode}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {jobItem.asset.room.floor.building.name} → {jobItem.asset.room.floor.name} → {jobItem.asset.room.name}
+                          {jobItem.asset.room.floor.building.site.name} → {jobItem.asset.room.floor.building.name} → {jobItem.asset.room.floor.name} → {jobItem.asset.room.name}
                         </div>
                       </div>
                       <div className="text-blue-600 font-medium ml-4">→</div>
@@ -133,7 +137,7 @@ export default async function TechnicianWorkOrderPage({ params }: Props) {
           {inProgressJobs.length > 0 && (
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-3">
-                🔄 กำลังทำ ({inProgressJobs.length})
+                กำลังทำ ({inProgressJobs.length})
               </h2>
               <div className="space-y-2">
                 {inProgressJobs.map((jobItem) => (
@@ -149,6 +153,9 @@ export default async function TechnicianWorkOrderPage({ params }: Props) {
                         </div>
                         <div className="text-sm text-gray-600 font-mono mb-1">
                           QR: {jobItem.asset.qrCode}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {jobItem.asset.room.floor.building.site.name} → {jobItem.asset.room.floor.building.name} → {jobItem.asset.room.floor.name} → {jobItem.asset.room.name}
                         </div>
                       </div>
                       <div className="text-blue-600 font-medium ml-4">→</div>
@@ -179,9 +186,12 @@ export default async function TechnicianWorkOrderPage({ params }: Props) {
                         <div className="text-sm text-gray-600 font-mono mb-1">
                           QR: {jobItem.asset.qrCode}
                         </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {jobItem.asset.room.floor.building.site.name} → {jobItem.asset.room.floor.building.name} → {jobItem.asset.room.floor.name} → {jobItem.asset.room.name}
+                        </div>
                         {jobItem.photos.length > 0 && (
                           <div className="text-xs text-green-600 mt-2">
-                            ✓ มีรูปภาพ {jobItem.photos.length} ภาพ
+                            มีรูปภาพ {jobItem.photos.length} ภาพ
                           </div>
                         )}
                       </div>

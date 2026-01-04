@@ -1,7 +1,19 @@
 import { createClient } from "@/app/actions";
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function NewClientPage() {
+export default async function NewClientPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  // เฉพาะ ADMIN เท่านั้นที่สามารถสร้าง Client ใหม่ได้
+  if (user.role !== 'ADMIN') {
+    redirect('/locations');
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
       <div className="max-w-2xl mx-auto">
@@ -24,7 +36,7 @@ export default function NewClientPage() {
               เพิ่มลูกค้าใหม่
             </h1>
           </div>
-          <p className="text-gray-600 ml-15">สร้างข้อมูลองค์กรลูกค้าใหม่เพื่อจัดการสาขาและสถานที่</p>
+          <p className="text-gray-600 ml-15">สร้างข้อมูลองค์กรลูกค้าใหม่เพื่อจัดการสถานที่</p>
         </div>
 
         {/* Form */}
@@ -37,9 +49,8 @@ export default function NewClientPage() {
               <input
                 type="text"
                 name="name"
-                required
                 autoFocus
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white text-gray-900 placeholder:text-gray-400"
                 placeholder="เช่น Grand Hotel Group, บริษัท ABC จำกัด"
               />
               <p className="mt-2 text-xs text-gray-500">
@@ -54,21 +65,20 @@ export default function NewClientPage() {
               <textarea
                 name="contactInfo"
                 rows={3}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white resize-none"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white resize-none text-gray-900 placeholder:text-gray-400"
                 placeholder="เช่น&#10;โทร: 02-xxx-xxxx&#10;อีเมล: contact@example.com&#10;ที่อยู่: กรุงเทพฯ"
               />
               <p className="mt-2 text-xs text-gray-500">
-                📞 ข้อมูลสำหรับการติดต่อ (ไม่บังคับ)
+                ข้อมูลสำหรับการติดต่อ (ไม่บังคับ)
               </p>
             </div>
 
             {/* Info Box */}
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <span className="text-xl">ℹ️</span>
                 <div className="text-sm text-gray-700">
                   <p className="font-semibold mb-1">หลังจากสร้างลูกค้าแล้ว</p>
-                  <p className="text-gray-600">คุณสามารถเพิ่มสาขา (Sites), อาคาร (Buildings), ชั้น (Floors) และห้อง (Rooms) ได้</p>
+                  <p className="text-gray-600">คุณสามารถเพิ่มสถานที่ (Sites), อาคาร (Buildings), ชั้น (Floors) และห้อง (Rooms) ได้</p>
                 </div>
               </div>
             </div>
@@ -79,7 +89,6 @@ export default function NewClientPage() {
                 type="submit"
                 className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2"
               >
-                <span>✓</span>
                 <span>บันทึก</span>
               </button>
               <Link
