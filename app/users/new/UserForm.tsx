@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createUser } from '@/app/actions'
 import Link from 'next/link'
+import Tooltip from '@/app/components/Tooltip'
 
 interface Site {
   id: string
@@ -95,14 +96,36 @@ export default function UserForm({ sites }: Props) {
             type="text"
             name="username"
             autoFocus
+            aria-label="ชื่อผู้ใช้"
+            aria-required="true"
+            aria-invalid={errors.username ? 'true' : 'false'}
+            aria-describedby={errors.username ? 'username-error' : 'username-help'}
             className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder:text-gray-400 ${
               errors.username ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200'
             }`}
             placeholder="เช่น tech1, client1"
+            onChange={(e) => {
+              const value = e.target.value
+              if (errors.username) {
+                setErrors({ ...errors, username: '' })
+              }
+              // Real-time validation
+              if (value && value.length < 3) {
+                setErrors({ ...errors, username: 'ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร' })
+              } else if (value && value.length > 50) {
+                setErrors({ ...errors, username: 'ชื่อผู้ใช้ต้องไม่เกิน 50 ตัวอักษร' })
+              } else if (value && !/^[a-zA-Z0-9_-]+$/.test(value)) {
+                setErrors({ ...errors, username: 'ชื่อผู้ใช้สามารถใช้ได้เฉพาะตัวอักษร ตัวเลข _ และ -' })
+              }
+            }}
           />
-          {errors.username && (
-            <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+          {errors.username ? (
+            <p id="username-error" className="mt-2 text-sm text-red-600 flex items-center gap-1" role="alert">
               <span>{errors.username}</span>
+            </p>
+          ) : (
+            <p id="username-help" className="mt-2 text-xs text-gray-500">
+              ใช้ตัวอักษร ตัวเลข _ และ - ได้เท่านั้น (3-50 ตัวอักษร)
             </p>
           )}
         </div>
@@ -115,14 +138,34 @@ export default function UserForm({ sites }: Props) {
           <input
             type="password"
             name="password"
+            aria-label="รหัสผ่าน"
+            aria-required="true"
+            aria-invalid={errors.password ? 'true' : 'false'}
+            aria-describedby={errors.password ? 'password-error' : 'password-help'}
             className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-gray-900 placeholder:text-gray-400 ${
               errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-200'
             }`}
             placeholder="อย่างน้อย 6 ตัวอักษร"
+            onChange={(e) => {
+              const value = e.target.value
+              if (errors.password) {
+                setErrors({ ...errors, password: '' })
+              }
+              // Real-time validation
+              if (value && value.length < 6) {
+                setErrors({ ...errors, password: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' })
+              } else if (value && value.length > 128) {
+                setErrors({ ...errors, password: 'รหัสผ่านต้องไม่เกิน 128 ตัวอักษร' })
+              }
+            }}
           />
-          {errors.password && (
-            <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+          {errors.password ? (
+            <p id="password-error" className="mt-2 text-sm text-red-600 flex items-center gap-1" role="alert">
               <span>{errors.password}</span>
+            </p>
+          ) : (
+            <p id="password-help" className="mt-2 text-xs text-gray-500">
+              อย่างน้อย 6 ตัวอักษร (แนะนำให้ใช้ตัวอักษร ตัวเลข และอักขระพิเศษผสมกัน)
             </p>
           )}
         </div>
@@ -204,13 +247,15 @@ export default function UserForm({ sites }: Props) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="สร้างผู้ใช้ใหม่"
+            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             {isSubmitting ? 'กำลังสร้าง...' : 'สร้างผู้ใช้'}
           </button>
           <Link
             href="/users"
-            className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-gray-700 transition-colors"
+            aria-label="ยกเลิกและกลับไปหน้ารายการผู้ใช้"
+            className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
           >
             ยกเลิก
           </Link>

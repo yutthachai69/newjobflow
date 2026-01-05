@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import DeleteWorkOrderButton from "./DeleteButton";
 import AssignTechnicianButton from "./AssignTechnicianButton";
 import ExportButton from "./ExportButton";
+import Breadcrumbs from "@/app/components/Breadcrumbs";
 import type { Metadata } from "next";
 
 interface Props {
@@ -156,17 +157,22 @@ export default async function WorkOrderDetailPage({ params }: Props) {
 
   const woStatusConfig = getWOStatusConfig(workOrder.status);
 
+  const jobTypeLabels: Record<string, string> = {
+    PM: "บำรุงรักษา",
+    CM: "ซ่อมแซม",
+    INSTALL: "ติดตั้ง",
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Back Link */}
-        <Link 
-          href="/work-orders" 
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 group transition-all duration-200"
-        >
-          <span className="group-hover:-translate-x-1 transition-transform duration-200">←</span>
-          <span className="font-medium text-gray-900">กลับไปหน้ารายการ</span>
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: 'Dashboard', href: '/' },
+            { label: 'ใบสั่งงาน', href: '/work-orders' },
+            { label: `${jobTypeLabels[workOrder.jobType] || workOrder.jobType} - ${workOrder.site.name}`, href: undefined },
+          ]}
+        />
 
         {/* Header Card */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 mb-6 border border-gray-100">

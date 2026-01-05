@@ -5,6 +5,7 @@ import Link from 'next/link'
 import DeleteButton from './DeleteButton'
 import LockButton from './LockButton'
 import { isAccountLocked } from '@/lib/account-lock'
+import EmptyState from '@/app/components/EmptyState'
 
 interface User {
   id: string
@@ -112,9 +113,13 @@ export default function UsersClient({ users, currentUserId }: Props) {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {filteredUsers.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500">ไม่พบข้อมูล</p>
-          </div>
+          <EmptyState
+            icon="👥"
+            title={search || roleFilter !== 'ALL' ? "ไม่พบข้อมูลที่ค้นหา" : "ยังไม่มีผู้ใช้งาน"}
+            description={search || roleFilter !== 'ALL' ? "ลองเปลี่ยนคำค้นหาหรือตัวกรอง" : "เริ่มต้นโดยการเพิ่มผู้ใช้ใหม่"}
+            actionLabel={!search && roleFilter === 'ALL' ? "+ เพิ่มผู้ใช้ใหม่" : undefined}
+            actionHref={!search && roleFilter === 'ALL' ? "/users/new" : undefined}
+          />
         ) : (
           filteredUsers.map((u) => {
             const locked = isAccountLocked(u)
@@ -228,8 +233,14 @@ export default function UsersClient({ users, currentUserId }: Props) {
           <tbody className="divide-y divide-gray-200">
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                  ไม่พบข้อมูล
+                <td colSpan={7} className="px-6 py-12">
+                  <EmptyState
+                    icon="👥"
+                    title={search || roleFilter !== 'ALL' ? "ไม่พบข้อมูลที่ค้นหา" : "ยังไม่มีผู้ใช้งาน"}
+                    description={search || roleFilter !== 'ALL' ? "ลองเปลี่ยนคำค้นหาหรือตัวกรอง" : "เริ่มต้นโดยการเพิ่มผู้ใช้ใหม่"}
+                    actionLabel={!search && roleFilter === 'ALL' ? "+ เพิ่มผู้ใช้ใหม่" : undefined}
+                    actionHref={!search && roleFilter === 'ALL' ? "/users/new" : undefined}
+                  />
                 </td>
               </tr>
             ) : (

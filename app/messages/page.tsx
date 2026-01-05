@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Pagination from "@/app/components/Pagination";
 import Link from "next/link";
+import EmptyState from "@/app/components/EmptyState";
 
 interface Props {
   searchParams: Promise<{ page?: string }>;
@@ -74,9 +75,11 @@ export default async function MessagesPage({ searchParams }: Props) {
 
         {/* Messages List */}
         {messages.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 md:p-12 text-center">
-            <p className="text-gray-500 text-base md:text-lg">ยังไม่มีข้อความ</p>
-          </div>
+          <EmptyState
+            icon="📭"
+            title="ยังไม่มีข้อความ"
+            description="ข้อความที่ลูกค้าส่งมาจะแสดงที่นี่"
+          />
         ) : (
           <>
             {/* Mobile Card View */}

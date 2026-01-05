@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { logSecurityEvent } from '@/lib/security'
 import { prisma } from '@/lib/prisma'
-import { handleApiError, createLogContext } from '@/lib/error-handler'
+import { handleApiError } from '@/lib/error-handler'
+import { createLogContext } from '@/lib/logger'
 import { logger } from '@/lib/logger'
 
 /**
@@ -41,8 +42,9 @@ export async function POST(request: NextRequest) {
       message: 'Incident reported and logged' 
     })
   } catch (error) {
-    const context = createLogContext(request, user)
-    const errorResponse = handleApiError(error, request, user)
+    const currentUser = await getCurrentUser().catch(() => null)
+    const context = createLogContext(request, currentUser)
+    const errorResponse = handleApiError(error, request, currentUser)
     
     logger.error('Failed to report security incident', context, error as Error)
     
@@ -71,8 +73,9 @@ export async function GET(request: NextRequest) {
       message: 'Incident log feature coming soon' 
     })
   } catch (error) {
-    const context = createLogContext(request, user)
-    const errorResponse = handleApiError(error, request, user)
+    const currentUser = await getCurrentUser().catch(() => null)
+    const context = createLogContext(request, currentUser)
+    const errorResponse = handleApiError(error, request, currentUser)
     
     logger.error('Failed to fetch security incidents', context, error as Error)
     

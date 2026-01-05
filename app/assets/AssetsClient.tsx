@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import AssetsSearchFilter from './AssetsSearchFilter'
+import EmptyState from '@/app/components/EmptyState'
 
 interface Asset {
   id: string
@@ -77,9 +78,13 @@ export default function AssetsClient({ assets, userRole }: Props) {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
         {filteredAssets.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500">ไม่พบข้อมูล</p>
-          </div>
+          <EmptyState
+            icon="🔍"
+            title={search || statusFilter !== 'ALL' ? "ไม่พบข้อมูลที่ค้นหา" : "ยังไม่มีข้อมูลแอร์"}
+            description={search || statusFilter !== 'ALL' ? "ลองเปลี่ยนคำค้นหาหรือตัวกรอง" : userRole === 'ADMIN' ? "เริ่มต้นโดยการเพิ่มแอร์ใหม่" : "ยังไม่มีแอร์ในระบบ"}
+            actionLabel={userRole === 'ADMIN' && !search && statusFilter === 'ALL' ? "+ เพิ่มแอร์ใหม่" : undefined}
+            actionHref={userRole === 'ADMIN' && !search && statusFilter === 'ALL' ? "/assets/new" : undefined}
+          />
         ) : (
           filteredAssets.map((asset) => (
             <div key={asset.id} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
@@ -134,8 +139,14 @@ export default function AssetsClient({ assets, userRole }: Props) {
           <tbody className="divide-y divide-gray-200 bg-white">
             {filteredAssets.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                  ไม่พบข้อมูล
+                <td colSpan={5} className="px-6 py-12">
+                  <EmptyState
+                    icon="🔍"
+                    title={search || statusFilter !== 'ALL' ? "ไม่พบข้อมูลที่ค้นหา" : "ยังไม่มีข้อมูลแอร์"}
+                    description={search || statusFilter !== 'ALL' ? "ลองเปลี่ยนคำค้นหาหรือตัวกรอง" : userRole === 'ADMIN' ? "เริ่มต้นโดยการเพิ่มแอร์ใหม่" : "ยังไม่มีแอร์ในระบบ"}
+                    actionLabel={userRole === 'ADMIN' && !search && statusFilter === 'ALL' ? "+ เพิ่มแอร์ใหม่" : undefined}
+                    actionHref={userRole === 'ADMIN' && !search && statusFilter === 'ALL' ? "/assets/new" : undefined}
+                  />
                 </td>
               </tr>
             ) : (

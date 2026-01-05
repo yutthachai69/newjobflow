@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { getSecurityIncidents, getIncidentStatistics } from '@/lib/security-incident'
-import { handleApiError, createLogContext } from '@/lib/error-handler'
+import { handleApiError } from '@/lib/error-handler'
+import { createLogContext } from '@/lib/logger'
 import { logger } from '@/lib/logger'
 import { IncidentType, IncidentSeverity } from '@prisma/client'
 

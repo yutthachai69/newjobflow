@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface AlertDialogProps {
   isOpen: boolean
@@ -19,9 +19,13 @@ export default function AlertDialog({
   buttonText = 'ตกลง',
   onClose,
 }: AlertDialogProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
+      // Focus button when dialog opens
+      buttonRef.current?.focus()
     } else {
       document.body.style.overflow = 'unset'
     }
@@ -29,6 +33,19 @@ export default function AlertDialog({
       document.body.style.overflow = 'unset'
     }
   }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
 
   if (!isOpen) return null
 
@@ -88,8 +105,10 @@ export default function AlertDialog({
           {/* Button */}
           <div className="flex justify-end mt-4">
             <button
+              ref={buttonRef}
               onClick={onClose}
-              className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 transition-colors ${config.buttonColor}`}
+              aria-label={buttonText}
+              className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200 active:scale-95 ${config.buttonColor}`}
             >
               {buttonText}
             </button>

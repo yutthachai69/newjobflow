@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import QRCodeDisplay from "./QRCodeDisplay";
 import DeleteAssetButton from "./DeleteButton";
+import Breadcrumbs from "@/app/components/Breadcrumbs";
 import type { Metadata } from "next";
 
 interface Props {
@@ -113,9 +114,13 @@ export default async function AssetDetailPage({ params }: Props) {
 
   return (
     <div className="p-8 max-w-4xl mx-auto font-sans">
-      <Link href="/assets" className="text-gray-500 hover:text-blue-600 mb-4 inline-block">
-        ← กลับไปหน้ารายการ
-      </Link>
+      <Breadcrumbs
+        items={[
+          { label: 'Dashboard', href: '/' },
+          { label: 'ทะเบียนแอร์', href: '/assets' },
+          { label: `${asset.brand} ${asset.model}`, href: undefined },
+        ]}
+      />
 
       <div className="bg-white rounded-xl shadow-lg border p-6 mb-6">
         <div className="flex justify-between items-start">

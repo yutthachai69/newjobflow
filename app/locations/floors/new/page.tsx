@@ -3,6 +3,7 @@ import { createFloor } from "@/app/actions";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import Tooltip from "@/app/components/Tooltip";
 
 interface Props {
   searchParams: Promise<{ buildingId?: string }>;
@@ -83,12 +84,19 @@ export default async function NewFloorPage({ searchParams }: Props) {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                ชื่อชั้น <span className="text-red-500">*</span>
+                <span className="flex items-center gap-2">
+                  ชื่อชั้น <span className="text-red-500">*</span>
+                  <Tooltip content="ระบุชื่อชั้นให้ชัดเจน เช่น G สำหรับชั้น Ground หรือ R สำหรับ Rooftop">
+                    <span className="text-gray-400 hover:text-gray-600 cursor-help text-xs">ℹ️</span>
+                  </Tooltip>
+                </span>
               </label>
               <input
                 type="text"
                 name="name"
                 autoFocus
+                aria-label="ชื่อชั้น"
+                aria-required="true"
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white text-gray-900 placeholder:text-gray-400"
                 placeholder="เช่น ชั้น 1, G (Ground Floor), ชั้น 2, Rooftop"
               />
@@ -101,13 +109,15 @@ export default async function NewFloorPage({ searchParams }: Props) {
             <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
               <button
                 type="submit"
-                className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+                aria-label="บันทึกข้อมูลชั้น"
+                className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 active:scale-95"
               >
                 <span>บันทึก</span>
               </button>
               <Link
                 href="/locations"
-                className="sm:flex-none px-8 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium text-center transition-all duration-200 text-gray-700"
+                aria-label="ยกเลิกและกลับไปหน้ารายการ"
+                className="sm:flex-none px-8 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium text-center transition-all duration-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
               >
                 ยกเลิก
               </Link>

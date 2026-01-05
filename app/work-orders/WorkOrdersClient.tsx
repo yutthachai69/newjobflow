@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Pagination from '@/app/components/Pagination'
+import EmptyState from '@/app/components/EmptyState'
 
 interface Site {
   id: string
@@ -96,6 +97,10 @@ interface Props {
   allSites?: Site[] | null
   selectedSiteId?: string
   userSiteName?: string
+  currentPage?: number
+  totalPages?: number
+  totalItems?: number
+  itemsPerPage?: number
 }
 
 export default function WorkOrdersClient({
@@ -142,17 +147,13 @@ export default function WorkOrdersClient({
           </div>
 
           {technicianJobItems.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-              <div className="text-6xl mb-4">📭</div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">ยังไม่มีประวัติการทำงาน</h2>
-              <p className="text-gray-600 mb-6">เมื่อคุณทำงานเสร็จแล้ว ประวัติจะแสดงที่นี่</p>
-              <Link
-                href="/technician"
-                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
-              >
-                ไปหน้างาน
-              </Link>
-            </div>
+            <EmptyState
+              icon="📭"
+              title="ยังไม่มีประวัติการทำงาน"
+              description="เมื่อคุณทำงานเสร็จแล้ว ประวัติจะแสดงที่นี่"
+              actionLabel="ไปหน้างาน"
+              actionHref="/technician"
+            />
           ) : (
             <div className="space-y-4">
               {technicianJobItems.map((jobItem) => {
@@ -543,18 +544,22 @@ export default function WorkOrdersClient({
             const matchesStatus = statusFilter === 'ALL' || wo.status === statusFilter
             return matchesSearch && matchesStatus
           }).length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              {search || statusFilter !== 'ALL' || selectedSiteId
-                ? 'ไม่พบข้อมูลที่ตรงกับเงื่อนไข'
-                : userRole === 'ADMIN' && selectedSiteId 
-                ? 'ไม่พบใบสั่งงานในสถานที่ที่เลือก'
-                : 'ยังไม่มีใบสั่งงาน'
-              }
-              {userRole === 'ADMIN' && (
-                <Link href="/work-orders/new" className="text-blue-600 hover:underline ml-1">
-                  สร้างใหม่
-                </Link>
-              )}
+            <div className="py-8">
+              <EmptyState
+                icon="📋"
+                title={search || statusFilter !== 'ALL' || selectedSiteId
+                  ? "ไม่พบข้อมูลที่ตรงกับเงื่อนไข"
+                  : userRole === 'ADMIN' && selectedSiteId 
+                  ? "ไม่พบใบสั่งงานในสถานที่ที่เลือก"
+                  : "ยังไม่มีใบสั่งงาน"}
+                description={search || statusFilter !== 'ALL' || selectedSiteId
+                  ? "ลองเปลี่ยนคำค้นหาหรือตัวกรอง"
+                  : userRole === 'ADMIN' 
+                  ? "เริ่มต้นโดยการสร้างใบสั่งงานใหม่"
+                  : "ยังไม่มีใบสั่งงานในระบบ"}
+                actionLabel={userRole === 'ADMIN' && !search && statusFilter === 'ALL' && !selectedSiteId ? "+ สร้างใบสั่งงานใหม่" : undefined}
+                actionHref={userRole === 'ADMIN' && !search && statusFilter === 'ALL' && !selectedSiteId ? "/work-orders/new" : undefined}
+              />
             </div>
           )}
         </div>

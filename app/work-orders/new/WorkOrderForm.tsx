@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createWorkOrder } from '@/app/actions'
+import Tooltip from '@/app/components/Tooltip'
 
 interface Site {
   id: string
@@ -242,7 +243,12 @@ export default function WorkOrderForm({ sites }: Props) {
         {/* เลือกสถานที่ (Single Autocomplete Field) */}
         <div data-error={(errors.siteId || errors.buildingId || errors.floorId) ? 'true' : undefined}>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            สถานที่ติดตั้ง <span className="text-red-500">*</span>
+            <span className="flex items-center gap-2">
+              สถานที่ติดตั้ง <span className="text-red-500">*</span>
+              <Tooltip content="เลือกสถานที่ อาคาร และชั้นที่ต้องการทำงาน">
+                <span className="text-gray-400 hover:text-gray-600 cursor-help text-xs">ℹ️</span>
+              </Tooltip>
+            </span>
           </label>
           
           {/* Breadcrumb Display */}
@@ -273,6 +279,9 @@ export default function WorkOrderForm({ sites }: Props) {
                 }}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                aria-label="ค้นหาหรือเลือกสถานที่"
+                aria-required="true"
+                aria-invalid={(errors.siteId || errors.buildingId || errors.floorId) ? 'true' : 'false'}
                 placeholder={
                   currentStage === 'site' ? 'ค้นหาหรือเลือกสถานที่...' :
                   currentStage === 'building' ? 'ค้นหาหรือเลือกอาคาร...' :
@@ -308,18 +317,30 @@ export default function WorkOrderForm({ sites }: Props) {
 
           {/* Error Messages */}
           {errors.siteId && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              <span>{errors.siteId}</span>
+            <div className="mt-2 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">
+              <span>⚠️</span>
+              <div>
+                <p className="font-semibold">{errors.siteId}</p>
+                <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกสถานที่ก่อนดำเนินการต่อ</p>
+              </div>
             </div>
           )}
           {errors.buildingId && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              <span>{errors.buildingId}</span>
+            <div className="mt-2 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">
+              <span>⚠️</span>
+              <div>
+                <p className="font-semibold">{errors.buildingId}</p>
+                <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกอาคารก่อนดำเนินการต่อ</p>
+              </div>
             </div>
           )}
           {errors.floorId && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              <span>{errors.floorId}</span>
+            <div className="mt-2 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">
+              <span>⚠️</span>
+              <div>
+                <p className="font-semibold">{errors.floorId}</p>
+                <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกชั้นก่อนดำเนินการต่อ</p>
+              </div>
             </div>
           )}
           
@@ -338,10 +359,18 @@ export default function WorkOrderForm({ sites }: Props) {
         {/* ชนิดงาน */}
         <div data-error={errors.jobType ? 'true' : undefined}>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            ชนิดงาน <span className="text-red-500">*</span>
+            <span className="flex items-center gap-2">
+              ชนิดงาน <span className="text-red-500">*</span>
+              <Tooltip content="เลือกประเภทงาน: PM (บำรุงรักษาประจำ), CM (ซ่อมฉุกเฉิน), หรือ INSTALL (ติดตั้งใหม่)">
+                <span className="text-gray-400 hover:text-gray-600 cursor-help text-xs">ℹ️</span>
+              </Tooltip>
+            </span>
           </label>
           <select
             name="jobType"
+            aria-label="เลือกชนิดงาน"
+            aria-required="true"
+            aria-invalid={errors.jobType ? 'true' : 'false'}
             onChange={(e) => {
               if (errors.jobType) setErrors({ ...errors, jobType: '' })
             }}
@@ -355,8 +384,12 @@ export default function WorkOrderForm({ sites }: Props) {
             <option value="INSTALL">🆕 INSTALL - ติดตั้งใหม่</option>
           </select>
           {errors.jobType && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              <span>{errors.jobType}</span>
+            <div className="mt-2 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">
+              <span>⚠️</span>
+              <div>
+                <p className="font-semibold">{errors.jobType}</p>
+                <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกชนิดงานก่อนดำเนินการต่อ</p>
+              </div>
             </div>
           )}
           {!errors.jobType && (
@@ -369,11 +402,19 @@ export default function WorkOrderForm({ sites }: Props) {
         {/* วันนัดหมาย */}
         <div data-error={errors.scheduledDate ? 'true' : undefined}>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            วันนัดหมาย <span className="text-red-500">*</span>
+            <span className="flex items-center gap-2">
+              วันนัดหมาย <span className="text-red-500">*</span>
+              <Tooltip content="เลือกวันและเวลาที่ต้องการให้ช่างเข้าทำงาน">
+                <span className="text-gray-400 hover:text-gray-600 cursor-help text-xs">ℹ️</span>
+              </Tooltip>
+            </span>
           </label>
           <input
             type="datetime-local"
             name="scheduledDate"
+            aria-label="เลือกวันนัดหมาย"
+            aria-required="true"
+            aria-invalid={errors.scheduledDate ? 'true' : 'false'}
             onChange={(e) => {
               if (errors.scheduledDate) setErrors({ ...errors, scheduledDate: '' })
             }}
@@ -382,8 +423,12 @@ export default function WorkOrderForm({ sites }: Props) {
             }`}
           />
           {errors.scheduledDate && (
-            <div className="mt-2 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              <span>{errors.scheduledDate}</span>
+            <div className="mt-2 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">
+              <span>⚠️</span>
+              <div>
+                <p className="font-semibold">{errors.scheduledDate}</p>
+                <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกวันนัดหมายก่อนดำเนินการต่อ</p>
+              </div>
             </div>
           )}
           {!errors.scheduledDate && (
@@ -412,7 +457,12 @@ export default function WorkOrderForm({ sites }: Props) {
         {/* เลือกแอร์ */}
         <div data-error={errors.assetIds ? 'true' : undefined}>
           <label className="block text-sm font-semibold text-gray-700 mb-3">
-            เลือกเครื่องปรับอากาศ <span className="text-red-500">*</span>
+            <span className="flex items-center gap-2">
+              เลือกเครื่องปรับอากาศ <span className="text-red-500">*</span>
+              <Tooltip content="เลือกเครื่องปรับอากาศที่ต้องการบำรุงรักษาในใบสั่งงานนี้ (เลือกได้หลายเครื่อง)">
+                <span className="text-gray-400 hover:text-gray-600 cursor-help text-xs">ℹ️</span>
+              </Tooltip>
+            </span>
           </label>
           
           {!selectedSiteId ? (
@@ -503,22 +553,33 @@ export default function WorkOrderForm({ sites }: Props) {
 
         {/* ปุ่ม Submit */}
         {errors.assetIds && (
-          <div className="mb-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-            <span>{errors.assetIds}</span>
+          <div className="mb-4 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3" role="alert">
+            <span>⚠️</span>
+            <div>
+              <p className="font-semibold">{errors.assetIds}</p>
+              <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกเครื่องปรับอากาศอย่างน้อย 1 เครื่อง</p>
+            </div>
           </div>
         )}
         <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
           <button
             type="submit"
             disabled={isSubmitting || !selectedSiteId || !selectedBuildingId || !selectedFloorId || filteredAssets.length === 0}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            aria-label="สร้างใบสั่งงาน"
+            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-95"
           >
             <span>{isSubmitting ? 'กำลังสร้าง...' : 'สร้างใบสั่งงาน'}</span>
           </button>
           <button
             type="button"
             onClick={() => router.push('/work-orders')}
-            className="sm:flex-none px-8 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium text-center transition-all duration-200 text-gray-700"
+            aria-label="ยกเลิกและกลับไปหน้ารายการ"
+            className="sm:flex-none px-8 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium text-center transition-all duration-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                router.push('/work-orders')
+              }
+            }}
           >
             ยกเลิก
           </button>

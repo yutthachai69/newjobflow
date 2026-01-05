@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { lockAccount, unlockAccount } from '@/lib/account-lock'
-import { handleApiError, createLogContext } from '@/lib/error-handler'
+import { handleApiError } from '@/lib/error-handler'
+import { createLogContext } from '@/lib/logger'
 import { logger } from '@/lib/logger'
 
 /**
@@ -69,8 +70,9 @@ export async function POST(request: NextRequest) {
       })
     }
   } catch (error) {
-    const context = createLogContext(request, user)
-    const errorResponse = handleApiError(error, request, user)
+    const currentUser = await getCurrentUser().catch(() => null)
+    const context = createLogContext(request, currentUser)
+    const errorResponse = handleApiError(error, request, currentUser)
     
     logger.error('Failed to lock/unlock account', context, error as Error)
     

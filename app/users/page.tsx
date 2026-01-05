@@ -6,7 +6,7 @@ import UsersClient from "./UsersClient";
 import Pagination from "@/app/components/Pagination";
 
 interface Props {
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; page?: string }>;
 }
 
 export default async function UsersPage({ searchParams }: Props) {

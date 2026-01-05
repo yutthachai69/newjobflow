@@ -56,11 +56,16 @@ export function checkRateLimit(
   
   const record = rateLimitStore.get(key)
   
+  const maxLimit = 'maxAttempts' in config ? config.maxAttempts : 
+                   'maxRequests' in config ? config.maxRequests :
+                   'maxUploads' in config ? config.maxUploads :
+                   config.maxSubmissions
+
   // No record exists, allow request
   if (!record) {
     return {
       allowed: true,
-      remaining: config.maxAttempts - 1,
+      remaining: maxLimit - 1,
       resetAt: new Date(now + config.windowMs),
     }
   }
@@ -71,20 +76,20 @@ export function checkRateLimit(
     rateLimitStore.delete(key)
     return {
       allowed: true,
-      remaining: config.maxAttempts - 1,
+      remaining: maxLimit - 1,
       resetAt: new Date(now + config.windowMs),
     }
   }
   
   // Check if limit exceeded
-  if (record.count >= config.maxAttempts) {
+  if (record.count >= maxLimit) {
     const retryAfter = Math.ceil((record.resetAt - now) / 1000)
     
     logger.warn('Rate limit exceeded', {
       identifier,
       type,
       count: record.count,
-      maxAttempts: config.maxAttempts,
+      maxLimit,
     })
     
     return {
@@ -101,7 +106,7 @@ export function checkRateLimit(
   
   return {
     allowed: true,
-    remaining: config.maxAttempts - record.count,
+    remaining: maxLimit - record.count,
     resetAt: new Date(record.resetAt),
   }
 }
@@ -159,12 +164,17 @@ export function getRateLimitInfo(
   const key = `${type}:${identifier}`
   const now = Date.now()
   
+  const maxLimit = 'maxAttempts' in config ? config.maxAttempts : 
+                   'maxRequests' in config ? config.maxRequests :
+                   'maxUploads' in config ? config.maxUploads :
+                   config.maxSubmissions
+  
   const record = rateLimitStore.get(key)
   
   if (!record) {
     return {
       allowed: true,
-      remaining: config.maxAttempts,
+      remaining: maxLimit,
       resetAt: new Date(now + config.windowMs),
     }
   }
@@ -172,16 +182,16 @@ export function getRateLimitInfo(
   if (now > record.resetAt) {
     return {
       allowed: true,
-      remaining: config.maxAttempts,
+      remaining: maxLimit,
       resetAt: new Date(now + config.windowMs),
     }
   }
   
   return {
-    allowed: record.count < config.maxAttempts,
-    remaining: Math.max(0, config.maxAttempts - record.count),
+    allowed: record.count < maxLimit,
+    remaining: Math.max(0, maxLimit - record.count),
     resetAt: new Date(record.resetAt),
-    retryAfter: record.count >= config.maxAttempts
+    retryAfter: record.count >= maxLimit
       ? Math.ceil((record.resetAt - now) / 1000)
       : undefined,
   }

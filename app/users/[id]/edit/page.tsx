@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import EditUserForm from "./EditUserForm";
+import Breadcrumbs from "@/app/components/Breadcrumbs";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -50,14 +51,13 @@ export default async function EditUserPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-gray-50 p-8 font-sans">
       <div className="max-w-2xl mx-auto">
-        {/* Back Link */}
-        <Link 
-          href="/users" 
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 group transition-all duration-200"
-        >
-          <span className="group-hover:-translate-x-1 transition-transform duration-200">←</span>
-          <span className="font-medium">กลับไปหน้ารายการผู้ใช้</span>
-        </Link>
+        <Breadcrumbs
+          items={[
+            { label: 'Dashboard', href: '/' },
+            { label: 'จัดการผู้ใช้งาน', href: '/users' },
+            { label: `แก้ไข: ${userToEdit.username}`, href: undefined },
+          ]}
+        />
 
         {/* Header */}
         <div className="mb-8">

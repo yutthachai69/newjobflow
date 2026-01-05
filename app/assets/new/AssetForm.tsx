@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createAsset } from '@/app/actions'
+import Tooltip from '@/app/components/Tooltip'
 
 interface Site {
   id: string
@@ -116,6 +117,8 @@ export default function AssetForm({ sites }: Props) {
           <select
             value={selectedSiteId}
             onChange={(e) => handleSiteChange(e.target.value)}
+            aria-label="เลือกสถานที่"
+            aria-required="true"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white text-gray-900"
           >
             <option value="">-- เลือกสถานที่ --</option>
@@ -154,8 +157,12 @@ export default function AssetForm({ sites }: Props) {
               ))}
             </select>
             {errors.buildingId && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                <span>{errors.buildingId}</span>
+              <div className="mt-2 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">
+                <span>⚠️</span>
+                <div>
+                  <p className="font-semibold">{errors.buildingId}</p>
+                  <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกอาคารก่อนดำเนินการต่อ</p>
+                </div>
               </div>
             )}
             {!errors.buildingId && (
@@ -190,8 +197,12 @@ export default function AssetForm({ sites }: Props) {
               ))}
             </select>
             {errors.floorId && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                <span>{errors.floorId}</span>
+              <div className="mt-2 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">
+                <span>⚠️</span>
+                <div>
+                  <p className="font-semibold">{errors.floorId}</p>
+                  <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกชั้นก่อนดำเนินการต่อ</p>
+                </div>
               </div>
             )}
             {!errors.floorId && (
@@ -226,8 +237,12 @@ export default function AssetForm({ sites }: Props) {
               ))}
             </select>
             {errors.roomId && (
-              <div className="mt-2 flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                <span>{errors.roomId}</span>
+              <div className="mt-2 flex items-start gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2" role="alert">
+                <span>⚠️</span>
+                <div>
+                  <p className="font-semibold">{errors.roomId}</p>
+                  <p className="text-xs text-red-500 mt-1">💡 กรุณาเลือกห้องก่อนดำเนินการต่อ</p>
+                </div>
               </div>
             )}
             {!errors.roomId && (
@@ -293,7 +308,12 @@ export default function AssetForm({ sites }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div data-error={errors.serialNo ? 'true' : undefined}>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Serial Number <span className="text-red-500">*</span>
+              <span className="flex items-center gap-2">
+                Serial Number <span className="text-red-500">*</span>
+                <Tooltip content="Serial Number จะถูกใช้เป็น QR Code สำหรับสแกนหาเครื่องปรับอากาศ ต้องไม่ซ้ำกับเครื่องอื่น">
+                  <span className="text-gray-400 hover:text-gray-600 cursor-help text-xs">ℹ️</span>
+                </Tooltip>
+              </span>
             </label>
             <input
               type="text"
@@ -349,14 +369,21 @@ export default function AssetForm({ sites }: Props) {
           <button
             type="submit"
             disabled={!selectedRoomId}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            aria-label="บันทึกข้อมูลเครื่องปรับอากาศ"
+            className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-95"
           >
             <span>บันทึก</span>
           </button>
           <button
             type="button"
             onClick={() => router.push('/assets')}
-            className="sm:flex-none px-8 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium text-center transition-all duration-200 text-gray-700"
+            aria-label="ยกเลิกและกลับไปหน้ารายการ"
+            className="sm:flex-none px-8 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium text-center transition-all duration-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                router.push('/assets')
+              }
+            }}
           >
             ยกเลิก
           </button>

@@ -60,9 +60,10 @@ export default function Navigation({ user, unreadMessageCount = 0 }: NavigationP
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   className="sm:hidden ml-4 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-                  aria-expanded="false"
+                  aria-expanded={mobileMenuOpen}
+                  aria-label="เปิด/ปิดเมนู"
                 >
-                  <span className="sr-only">Open main menu</span>
+                  <span className="sr-only">เปิด/ปิดเมนู</span>
                   {mobileMenuOpen ? (
                     <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -79,7 +80,8 @@ export default function Navigation({ user, unreadMessageCount = 0 }: NavigationP
                   <>
                     <Link
                       href="/"
-                      className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      aria-label="Dashboard"
+                      className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                         isActive("/") && pathname === "/"
                           ? "bg-blue-600 text-white"
                           : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -89,7 +91,8 @@ export default function Navigation({ user, unreadMessageCount = 0 }: NavigationP
                     </Link>
                     <Link
                       href="/assets"
-                      className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      aria-label="ทะเบียนแอร์"
+                      className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                         isActive("/assets")
                           ? "bg-blue-600 text-white"
                           : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -99,7 +102,8 @@ export default function Navigation({ user, unreadMessageCount = 0 }: NavigationP
                     </Link>
                     <Link
                       href="/work-orders"
-                      className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      aria-label="ประวัติงาน"
+                      className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                         isActive("/work-orders")
                           ? "bg-blue-600 text-white"
                           : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -109,7 +113,8 @@ export default function Navigation({ user, unreadMessageCount = 0 }: NavigationP
                     </Link>
                     <Link
                       href="/contact"
-                      className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      aria-label="ติดต่อเรา"
+                      className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                         isActive("/contact")
                           ? "bg-blue-600 text-white"
                           : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"

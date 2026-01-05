@@ -1,9 +1,10 @@
 import { put } from '@vercel/blob'
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
-import { handleApiError, createLogContext } from '@/lib/error-handler'
+import { handleApiError } from '@/lib/error-handler'
+import { createLogContext } from '@/lib/logger'
 import { logger } from '@/lib/logger'
-import { checkRateLimit, getClientIP } from '@/lib/rate-limit'
+import { checkRateLimit } from '@/lib/rate-limit'
 import { getClientIP as getSecurityIP } from '@/lib/security'
 
 export async function POST(request: NextRequest) {
