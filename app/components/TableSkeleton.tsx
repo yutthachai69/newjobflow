@@ -36,3 +36,4 @@ export default function TableSkeleton({ rows = 5, columns = 5 }: Props) {
   )
 }
 
+

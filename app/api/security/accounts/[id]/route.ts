@@ -7,10 +7,14 @@ import { createLogContext } from '@/lib/logger'
 import { logger } from '@/lib/logger'
 
 /**
- * Lock user account (ADMIN only)
- * Used in case of security breach
+ * PUT /api/security/accounts/[id]
+ * Lock or unlock user account (ADMIN only)
+ * Body: { action: 'lock' | 'unlock', reason?: string, durationMinutes?: number }
  */
-export async function POST(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Authorization check
     const user = await getCurrentUser()
@@ -18,16 +22,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    const { id } = await params
     const body = await request.json()
-    const { userId, reason, durationMinutes, action } = body
+    const { action, reason, durationMinutes } = body
 
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+    if (!action || !['lock', 'unlock'].includes(action)) {
+      return NextResponse.json({ error: 'Invalid action. Must be "lock" or "unlock"' }, { status: 400 })
     }
 
     // Find user
     const targetUser = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id },
     })
 
     if (!targetUser) {
@@ -35,19 +40,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Prevent locking yourself
-    if (userId === user.id) {
+    if (id === user.id) {
       return NextResponse.json({ error: 'Cannot lock your own account' }, { status: 400 })
     }
 
     // Prevent locking other admins (optional - can be removed if needed)
-    if (targetUser.role === 'ADMIN' && user.id !== userId) {
+    if (targetUser.role === 'ADMIN' && user.id !== id) {
       return NextResponse.json({ error: 'Cannot lock another admin account' }, { status: 403 })
     }
 
     // Handle lock/unlock action
     if (action === 'unlock') {
       await unlockAccount({
-        userId,
+        userId: id,
         unlockedBy: user.id,
       })
 
@@ -58,7 +63,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Lock account
       await lockAccount({
-        userId,
+        userId: id,
         reason: reason || 'Security incident',
         durationMinutes: durationMinutes || 15,
         lockedBy: user.id,
@@ -71,8 +76,8 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     const currentUser = await getCurrentUser().catch(() => null)
-    const context = createLogContext(request, currentUser)
-    const errorResponse = handleApiError(error, request, currentUser)
+    const context = await createLogContext(request, currentUser)
+    const errorResponse = await handleApiError(error, request, currentUser)
     
     logger.error('Failed to lock/unlock account', context, error as Error)
     
@@ -82,5 +87,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
 

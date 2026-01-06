@@ -83,15 +83,9 @@ export default function AlertDialog({
   const config = typeConfig[type]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop - เบากว่า */}
-      <div
-        className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
       {/* Dialog - เล็กลงและมี animation */}
-      <div className={`relative w-full max-w-sm transform overflow-hidden rounded-lg bg-white shadow-2xl transition-all animate-in fade-in zoom-in duration-200 border ${config.borderColor}`}>
+      <div className={`relative w-full max-w-sm transform overflow-hidden rounded-lg bg-white shadow-2xl transition-all animate-in fade-in zoom-in duration-200 border ${config.borderColor} pointer-events-auto`}>
         {/* Body */}
         <div className={`px-5 py-4 bg-gradient-to-br ${config.bgColor}`}>
           <div className="flex items-start gap-3 mb-3">

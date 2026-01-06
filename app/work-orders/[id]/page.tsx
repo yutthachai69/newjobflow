@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { updateWorkOrderStatus } from "@/app/actions";
 import { getCurrentUser } from "@/lib/auth";
+import { updateWorkOrderStatus } from "@/app/actions";
 import DeleteWorkOrderButton from "./DeleteButton";
+import CancelWorkOrderButton from "./CancelButton";
 import AssignTechnicianButton from "./AssignTechnicianButton";
 import ExportButton from "./ExportButton";
 import Breadcrumbs from "@/app/components/Breadcrumbs";
@@ -250,16 +251,7 @@ export default async function WorkOrderDetailPage({ params }: Props) {
           {/* Status Actions - Only for ADMIN */}
           {user.role === 'ADMIN' && workOrder.status !== "COMPLETED" && workOrder.status !== "CANCELLED" && (
             <div className="flex flex-wrap gap-3 pt-6 border-t border-gray-200">
-              {workOrder.status === "OPEN" && (
-                <form action={updateWorkOrderStatus.bind(null, workOrder.id, "IN_PROGRESS")}>
-                  <button
-                    type="submit"
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center gap-2"
-                  >
-                    <span>เริ่มงาน</span>
-                  </button>
-                </form>
-              )}
+              {/* Note: การเริ่มงานควรทำโดย TECHNICIAN ที่ Job Item level */}
               {workOrder.status === "IN_PROGRESS" && (
                 <form action={updateWorkOrderStatus.bind(null, workOrder.id, "COMPLETED")}>
                   <button
@@ -270,14 +262,7 @@ export default async function WorkOrderDetailPage({ params }: Props) {
                   </button>
                 </form>
               )}
-              <form action={updateWorkOrderStatus.bind(null, workOrder.id, "CANCELLED")}>
-                <button
-                  type="submit"
-                  className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:shadow-xl hover:scale-105 font-semibold transition-all duration-300 flex items-center gap-2"
-                >
-                  <span>ยกเลิก</span>
-                </button>
-              </form>
+              <CancelWorkOrderButton workOrderId={workOrder.id} />
             </div>
           )}
         </div>

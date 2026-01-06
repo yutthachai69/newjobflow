@@ -26,3 +26,4 @@ jest.mock('next/navigation', () => ({
 process.env.DATABASE_URL = 'file:./test.db'
 process.env.NODE_ENV = 'test'
 
+

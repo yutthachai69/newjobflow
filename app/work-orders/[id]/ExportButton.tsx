@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import jsPDF from 'jspdf'
+import { useState, useRef, useEffect } from 'react'
 import * as XLSX from 'xlsx'
 import AlertDialog from '@/app/components/AlertDialog'
 
@@ -43,86 +42,187 @@ export default function ExportButton({ workOrder }: Props) {
     message: '',
     type: 'error',
   })
+  const printWindowRef = useRef<Window | null>(null)
 
   function exportToPDF() {
     setIsExporting(true)
     try {
-      const doc = new jsPDF()
-      
-      // Title
-      doc.setFontSize(18)
-      doc.text('ใบสั่งงาน', 105, 20, { align: 'center' })
-      
-      // Work Order Info
-      doc.setFontSize(12)
-      let y = 35
-      doc.text(`ID: ${workOrder.id}`, 20, y)
-      y += 7
-      doc.text(`ชนิดงาน: ${workOrder.jobType}`, 20, y)
-      y += 7
-      doc.text(`สถานที่: ${workOrder.site.name}`, 20, y)
-      y += 7
-      doc.text(`ลูกค้า: ${workOrder.site.client.name}`, 20, y)
-      y += 7
-      doc.text(`วันนัดหมาย: ${new Date(workOrder.scheduledDate).toLocaleDateString('th-TH')}`, 20, y)
-      y += 7
-      doc.text(`สถานะ: ${workOrder.status}`, 20, y)
-      y += 10
+      // สร้าง HTML content สำหรับ PDF
+      const jobTypeLabels: Record<string, string> = {
+        PM: 'บำรุงรักษา',
+        CM: 'ซ่อมแซม',
+        INSTALL: 'ติดตั้ง',
+      }
 
-      // Job Items Table
-      doc.setFontSize(14)
-      doc.text('รายการงาน', 20, y)
-      y += 10
+      const statusLabels: Record<string, string> = {
+        OPEN: 'เปิด',
+        IN_PROGRESS: 'กำลังดำเนินการ',
+        COMPLETED: 'เสร็จสิ้น',
+        CANCELLED: 'ยกเลิก',
+      }
 
-      doc.setFontSize(10)
-      const tableData = workOrder.jobItems.map((item, index) => [
-        index + 1,
-        item.asset.qrCode,
-        `${item.asset.brand || ''} ${item.asset.model || ''}`.trim(),
-        item.technician?.fullName || item.technician?.username || '-',
-        item.status,
-      ])
+      const jobItemStatusLabels: Record<string, string> = {
+        PENDING: 'รอดำเนินการ',
+        IN_PROGRESS: 'กำลังดำเนินการ',
+        DONE: 'เสร็จสิ้น',
+        ISSUE_FOUND: 'พบปัญหา',
+      }
 
-      // Simple table
-      doc.text('ลำดับ', 20, y)
-      doc.text('QR Code', 50, y)
-      doc.text('เครื่อง', 90, y)
-      doc.text('ช่าง', 140, y)
-      doc.text('สถานะ', 180, y)
-      y += 7
+      const htmlContent = `
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ใบสั่งงาน - ${workOrder.id}</title>
+  <style>
+    @media print {
+      @page {
+        margin: 1cm;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    }
+    body {
+      font-family: 'Sarabun', 'Kanit', 'Prompt', 'Sans-serif', Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      color: #000;
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      color: #1e40af;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      margin-top: 30px;
+      color: #1e40af;
+    }
+    .info-section {
+      margin-bottom: 30px;
+    }
+    .info-section p {
+      margin: 5px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    thead tr {
+      background-color: #3b82f6;
+      color: white;
+    }
+    th, td {
+      border: 1px solid #1e40af;
+      padding: 10px;
+    }
+    th {
+      text-align: center;
+      font-weight: bold;
+    }
+    tbody tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+    .text-center {
+      text-align: center;
+    }
+    .text-left {
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <h1>ใบสั่งงาน</h1>
+  
+  <div class="info-section">
+    <p><strong>ID:</strong> ${workOrder.id}</p>
+    <p><strong>ชนิดงาน:</strong> ${jobTypeLabels[workOrder.jobType] || workOrder.jobType}</p>
+    <p><strong>สถานที่:</strong> ${workOrder.site.name}</p>
+    <p><strong>ลูกค้า:</strong> ${workOrder.site.client.name}</p>
+    <p><strong>วันนัดหมาย:</strong> ${new Date(workOrder.scheduledDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    <p><strong>สถานะ:</strong> ${statusLabels[workOrder.status] || workOrder.status}</p>
+  </div>
 
-      tableData.forEach((row) => {
-        if (y > 270) {
-          doc.addPage()
-          y = 20
-        }
-        doc.text(row[0].toString(), 20, y)
-        doc.text(row[1].toString(), 50, y)
-        doc.text(row[2].toString(), 90, y)
-        doc.text(row[3].toString(), 140, y)
-        doc.text(row[4].toString(), 180, y)
-        y += 7
-      })
+  <h2>รายการงาน</h2>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>ลำดับ</th>
+        <th class="text-left">QR Code</th>
+        <th class="text-left">ยี่ห้อ/รุ่น</th>
+        <th class="text-left">ช่าง</th>
+        <th>สถานะ</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${workOrder.jobItems.map((item, index) => `
+        <tr>
+          <td class="text-center">${index + 1}</td>
+          <td>${item.asset.qrCode}</td>
+          <td>${`${item.asset.brand || ''} ${item.asset.model || ''}`.trim() || '-'}</td>
+          <td>${item.technician?.fullName || item.technician?.username || '-'}</td>
+          <td class="text-center">${jobItemStatusLabels[item.status] || item.status}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+</body>
+</html>
+      `
 
-      doc.save(`work-order-${workOrder.id}.pdf`)
-      setAlert({
-        isOpen: true,
-        title: 'ส่งออกสำเร็จ',
-        message: 'ส่งออก PDF เรียบร้อยแล้ว',
-        type: 'success',
-      })
+      // เปิดหน้าต่างใหม่และแสดง HTML
+      const printWindow = window.open('', '_blank')
+      if (!printWindow) {
+        throw new Error('ไม่สามารถเปิดหน้าต่างใหม่ได้ กรุณาอนุญาต popup')
+      }
+
+      printWindowRef.current = printWindow
+      printWindow.document.write(htmlContent)
+      printWindow.document.close()
+
+      // รอให้ content โหลดเสร็จแล้ว print
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print()
+          setIsExporting(false)
+          setAlert({
+            isOpen: true,
+            title: 'พร้อมพิมพ์',
+            message: 'กรุณาเลือก "Save as PDF" ในหน้าต่าง Print',
+            type: 'success',
+          })
+        }, 500)
+      }
     } catch (error) {
       console.error('Error exporting PDF:', error)
       setAlert({
         isOpen: true,
         title: 'เกิดข้อผิดพลาด',
-        message: 'เกิดข้อผิดพลาดในการส่งออก PDF',
+        message: error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการส่งออก PDF',
         type: 'error',
       })
-    } finally {
       setIsExporting(false)
     }
   }
+
+  // Cleanup print window on unmount
+  useEffect(() => {
+    return () => {
+      if (printWindowRef.current && !printWindowRef.current.closed) {
+        printWindowRef.current.close()
+      }
+    }
+  }, [])
 
   function exportToExcel() {
     setIsExporting(true)

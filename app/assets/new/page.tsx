@@ -81,7 +81,7 @@ export default async function NewAssetPage() {
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-md">
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold text-gray-900">
               เพิ่มเครื่องปรับอากาศใหม่
             </h1>
           </div>

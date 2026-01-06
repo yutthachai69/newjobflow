@@ -24,7 +24,7 @@ export default function AssetsSearchFilter({
           placeholder="ค้นหาตาม QR Code, ยี่ห้อ, รุ่น..."
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
         />
       </div>
 
@@ -33,7 +33,7 @@ export default function AssetsSearchFilter({
         <select
           value={statusFilter}
           onChange={(e) => onStatusFilterChange(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
         >
           <option value="ALL">ทุกสถานะ</option>
           <option value="ACTIVE">ใช้งาน</option>
@@ -44,4 +44,5 @@ export default function AssetsSearchFilter({
     </div>
   )
 }
+
 

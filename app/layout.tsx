@@ -67,13 +67,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getCurrentUser();
-  
-  // แปลง user เป็น format ที่ Navigation ต้องการ
-  const navUser = user ? {
-    username: user.username,
-    fullName: user.fullName || undefined,
-    role: user.role as "ADMIN" | "TECHNICIAN" | "CLIENT",
-  } : null;
 
   // ดึงจำนวนข้อความที่ยังไม่ได้อ่านสำหรับ ADMIN
   let unreadMessageCount = 0;
@@ -96,7 +89,10 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
       >
         <ToastProvider />
-        <Navigation user={navUser} unreadMessageCount={unreadMessageCount} />
+        <Navigation 
+          userRole={user?.role || null} 
+          unreadMessageCount={unreadMessageCount} 
+        />
         <main>{children}</main>
       </body>
     </html>

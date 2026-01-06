@@ -113,7 +113,7 @@ export default async function AssetDetailPage({ params }: Props) {
   );
 
   return (
-    <div className="p-8 max-w-4xl mx-auto font-sans">
+    <div className="min-h-screen bg-gray-50 p-8 max-w-4xl mx-auto font-sans">
       <Breadcrumbs
         items={[
           { label: 'Dashboard', href: '/' },
@@ -123,18 +123,41 @@ export default async function AssetDetailPage({ params }: Props) {
       />
 
       <div className="bg-white rounded-xl shadow-lg border p-6 mb-6">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div>
-            <span className={`px-3 py-1 rounded-full text-sm font-bold ${asset.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              {asset.status}
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
+              asset.status === 'ACTIVE'
+                ? 'bg-green-100 text-green-800'
+                : asset.status === 'BROKEN'
+                ? 'bg-red-100 text-red-800'
+                : 'bg-gray-100 text-gray-800'
+            }`}>
+              {asset.status === 'ACTIVE' && 'ใช้งาน'}
+              {asset.status === 'BROKEN' && 'ชำรุด'}
+              {asset.status === 'RETIRED' && 'เลิกใช้งาน'}
             </span>
             <h1 className="text-3xl font-bold mt-2 text-gray-800">
               {asset.brand} - {asset.model}
             </h1>
           </div>
-          <div className="text-right">
-             <div className="text-sm text-gray-500">ขนาด BTU</div>
-             <div className="text-2xl font-bold text-blue-600">{asset.btu?.toLocaleString()} BTU</div>
+          <div className="flex flex-col items-end gap-3">
+            <div className="text-right">
+              <div className="text-sm text-gray-500">ขนาด BTU</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {asset.btu ? `${asset.btu.toLocaleString()} BTU` : '-'}
+              </div>
+            </div>
+            {user.role === 'ADMIN' && (
+              <div className="flex flex-wrap justify-end gap-2">
+                <Link
+                  href={`/assets/${asset.id}/edit`}
+                  className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-400 transition-colors"
+                >
+                  แก้ไข
+                </Link>
+                <DeleteAssetButton assetId={asset.id} />
+              </div>
+            )}
           </div>
         </div>
 
@@ -224,9 +247,9 @@ export default async function AssetDetailPage({ params }: Props) {
         </div>
       )}
 
-      <h2 className="text-xl font-bold mb-4 flex items-center">
+      <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
         ประวัติการบำรุงรักษา
-        <span className="ml-2 text-sm font-normal text-gray-500">({asset.jobItems.length} รายการ)</span>
+        <span className="ml-2 text-sm font-normal text-gray-700">({asset.jobItems.length} รายการ)</span>
       </h2>
 
       <div className="space-y-4">

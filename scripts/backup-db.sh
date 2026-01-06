@@ -39,3 +39,4 @@ ls -t backup_*.db* | tail -n +31 | xargs -r rm -f
 echo "Backup completed: $BACKUP_FILE"
 echo "Backup size: $(du -h "$BACKUP_FILE" | cut -f1)"
 
+

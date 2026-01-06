@@ -20,13 +20,12 @@ export default function LockButton({ userId, username, isLocked }: Props) {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/security/lock-account', {
-        method: 'POST',
+      const response = await fetch(`/api/security/accounts/${userId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId,
           action: isLocked ? 'unlock' : 'lock',
           reason: isLocked ? undefined : 'Manual lock by admin',
           durationMinutes: isLocked ? undefined : 15,

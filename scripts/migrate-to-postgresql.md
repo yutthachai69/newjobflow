@@ -131,3 +131,4 @@ Prisma จะจัดการให้อัตโนมัติ
 2. Restore จาก backup
 3. `npx prisma generate`
 
+

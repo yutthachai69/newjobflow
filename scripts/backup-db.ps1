@@ -45,3 +45,4 @@ $FileSize = (Get-Item $BackupFile).Length / 1MB
 Write-Host "Backup completed: $BackupFile" -ForegroundColor Green
 Write-Host "Backup size: $([math]::Round($FileSize, 2)) MB" -ForegroundColor Green
 
+

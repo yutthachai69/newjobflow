@@ -17,8 +17,8 @@ export default function DeleteButton({ userId, username }: DeleteButtonProps) {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/users/${userId}/delete`, {
-        method: 'POST',
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
       })
 
       if (response.ok) {

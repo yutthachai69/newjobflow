@@ -21,7 +21,16 @@ if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: ['query'], // ให้มันโชว์ SQL ใน Terminal เวลาเราเรียกใช้ (เอาไว้ Debug)
+    // ปรับ logging ให้เหมาะสม:
+    // - Development: แสดง errors และ warnings เท่านั้น (ไม่แสดง query เพราะมันเยอะเกินไป)
+    // - Production: แสดงเฉพาะ errors
+    log: process.env.NODE_ENV === 'production' 
+      ? ['error'] 
+      : ['error', 'warn'],
+    // ถ้าต้องการดู query logs ใน development สามารถเปิดได้โดย:
+    // log: process.env.NODE_ENV === 'production' 
+    //   ? ['error'] 
+    //   : ['error', 'warn', 'query'],
   })
 
 if (process.env.NODE_ENV !== 'production') {

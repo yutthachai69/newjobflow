@@ -154,14 +154,27 @@ export default function WorkOrderForm({ sites }: Props) {
   }
 
   const handleReset = () => {
-    setSelectedSiteId('')
-    setSelectedBuildingId('')
-    setSelectedFloorId('')
-    setSelectedRoomId('')
-    setCurrentStage('site')
+    // ย้อนกลับทีละขั้น จาก room -> floor -> building -> site
+    if (selectedRoomId) {
+      setSelectedRoomId('')
+      setCurrentStage('room')
+      setErrors((prev) => ({ ...prev, roomId: '' }))
+    } else if (selectedFloorId) {
+      setSelectedFloorId('')
+      setCurrentStage('floor')
+      setErrors((prev) => ({ ...prev, floorId: '' }))
+    } else if (selectedBuildingId) {
+      setSelectedBuildingId('')
+      setCurrentStage('building')
+      setErrors((prev) => ({ ...prev, buildingId: '' }))
+    } else if (selectedSiteId) {
+      setSelectedSiteId('')
+      setCurrentStage('site')
+      setErrors((prev) => ({ ...prev, siteId: '' }))
+    }
+
     setSearchQuery('')
-    setShowDropdown(false)
-    setErrors({})
+    setShowDropdown(true)
   }
   
   // รวบรวมแอร์ทั้งหมดจากห้องที่เลือก (ถ้าเลือกห้อง) หรือจากชั้นที่เลือก (ถ้ายังไม่เลือกห้อง)
@@ -251,9 +264,9 @@ export default function WorkOrderForm({ sites }: Props) {
             </span>
           </label>
           
-          {/* Breadcrumb Display */}
+          {/* Breadcrumb Display + ปุ่มย้อนกลับระดับสถานที่ */}
           {locationPath && (
-            <div className="mb-2 flex items-center gap-2 flex-wrap">
+            <div className="mb  -2 flex items-center gap-2 flex-wrap">
               <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 flex items-center gap-2">
                 <span className="text-blue-700 font-medium">{locationPath}</span>
                 <button
@@ -261,59 +274,64 @@ export default function WorkOrderForm({ sites }: Props) {
                   onClick={handleReset}
                   className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                 >
-                  เปลี่ยน
+                  ย้อนกลับ
                 </button>
               </div>
             </div>
           )}
 
-          {/* Search Input */}
-          {currentStage !== 'done' && (
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value)
-                  setShowDropdown(true)
-                }}
-                onFocus={() => setShowDropdown(true)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                aria-label="ค้นหาหรือเลือกสถานที่"
-                aria-required="true"
-                aria-invalid={(errors.siteId || errors.buildingId || errors.floorId) ? 'true' : 'false'}
-                placeholder={
-                  currentStage === 'site' ? 'ค้นหาหรือเลือกสถานที่...' :
-                  currentStage === 'building' ? 'ค้นหาหรือเลือกอาคาร...' :
-                  currentStage === 'floor' ? 'ค้นหาหรือเลือกชั้น...' :
-                  'ค้นหาหรือเลือกห้อง...'
+          {/* Search Input (always visible so user can change selection) */}
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setShowDropdown(true)
+              }}
+              onFocus={() => {
+                // ถ้าเลือกครบแล้ว แต่อยากเปลี่ยน แค่ย้อนกลับไปเลือกห้องใหม่ (คง Site/อาคาร/ชั้น เดิม)
+                if (currentStage === 'done') {
+                  setCurrentStage('room')
+                  setSelectedRoomId('')
                 }
-                className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white text-gray-900 placeholder:text-gray-400 ${
-                  (errors.siteId || errors.buildingId || errors.floorId) ? 'border-red-400 bg-red-50/50' : 'border-gray-200'
-                }`}
-              />
-              
-              {/* Dropdown Options */}
-              {showDropdown && getCurrentOptions().length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
-                  {getCurrentOptions().map((option) => (
-                    <button
-                      key={option.id}
-                      type="button"
-                      onClick={() => handleOptionSelect(option)}
-                      className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-gray-900">{option.label}</span>
-                        <span className="text-xs text-gray-500">
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                setShowDropdown(true)
+              }}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+              aria-label="ค้นหาหรือเลือกสถานที่"
+              aria-required="true"
+              aria-invalid={(errors.siteId || errors.buildingId || errors.floorId) ? 'true' : 'false'}
+              placeholder={
+                currentStage === 'site' ? 'ค้นหาหรือเลือกสถานที่...' :
+                currentStage === 'building' ? 'ค้นหาหรือเลือกอาคาร...' :
+                currentStage === 'floor' ? 'ค้นหาหรือเลือกชั้น...' :
+                'ค้นหาหรือเลือกห้อง...'
+              }
+              className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white text-gray-900 placeholder:text-gray-400 ${
+                (errors.siteId || errors.buildingId || errors.floorId) ? 'border-red-400 bg-red-50/50' : 'border-gray-200'
+              }`}
+            />
+            
+            {/* Dropdown Options */}
+            {showDropdown && getCurrentOptions().length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                {getCurrentOptions().map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => handleOptionSelect(option)}
+                    className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-900">{option.label}</span>
+                      <span className="text-xs text-gray-500">
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Error Messages */}
           {errors.siteId && (

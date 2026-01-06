@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteWorkOrder } from '@/app/actions'
 import toast from 'react-hot-toast'
+import ConfirmDialog from '@/app/components/ConfirmDialog'
 
 interface Props {
   workOrderId: string
@@ -15,16 +16,12 @@ export default function DeleteWorkOrderButton({ workOrderId }: Props) {
   const [showConfirm, setShowConfirm] = useState(false)
 
   async function handleDelete() {
-    if (!showConfirm) {
-      setShowConfirm(true)
-      return
-    }
-
     setIsDeleting(true)
 
     try {
       await deleteWorkOrder(workOrderId)
       toast.success('ลบใบสั่งงานเรียบร้อยแล้ว')
+      setShowConfirm(false)
       router.push('/work-orders')
       router.refresh()
     } catch (error) {
@@ -36,40 +33,31 @@ export default function DeleteWorkOrderButton({ workOrderId }: Props) {
         toast.error(errorMessage)
       }
       setIsDeleting(false)
-      setShowConfirm(false)
     }
   }
 
-  if (showConfirm) {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600">ยืนยันการลบ?</span>
-        <button
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="px-3 py-1.5 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isDeleting ? 'กำลังลบ...' : 'ยืนยัน'}
-        </button>
-        <button
-          onClick={() => setShowConfirm(false)}
-          disabled={isDeleting}
-          className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          ยกเลิก
-        </button>
-      </div>
-    )
-  }
-
   return (
-    <button
-      onClick={handleDelete}
-      disabled={isDeleting}
-      className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      ลบใบสั่งงาน
-    </button>
+    <>
+      <button
+        onClick={() => setShowConfirm(true)}
+        disabled={isDeleting}
+        className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        ลบใบสั่งงาน
+      </button>
+
+      <ConfirmDialog
+        isOpen={showConfirm}
+        title="ลบใบสั่งงาน"
+        message="คุณแน่ใจหรือไม่ว่าต้องการลบใบสั่งงานนี้? การกระทำนี้ไม่สามารถยกเลิกได้"
+        confirmText="ลบ"
+        cancelText="ยกเลิก"
+        confirmColor="red"
+        onConfirm={handleDelete}
+        onCancel={() => setShowConfirm(false)}
+        isLoading={isDeleting}
+      />
+    </>
   )
 }
 

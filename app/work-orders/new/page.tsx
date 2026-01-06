@@ -30,7 +30,7 @@ export default async function NewWorkOrderPage() {
         {/* Back Link */}
         <Link 
           href="/work-orders" 
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 group transition-all duration-200"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-white/70 text-gray-600 text-sm hover:bg-gray-100 hover:text-blue-600 shadow-sm mb-6 group transition-all duration-200"
         >
           <span className="group-hover:-translate-x-1 transition-transform duration-200">←</span>
           <span className="font-medium">กลับไปหน้ารายการ</span>

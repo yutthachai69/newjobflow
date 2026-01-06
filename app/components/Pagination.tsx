@@ -38,7 +38,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, itemsP
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
         >
           ก่อนหน้า
         </button>
@@ -68,7 +68,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, itemsP
                     className={`px-3 py-2 border rounded-lg ${
                       currentPage === page
                         ? 'bg-blue-600 text-white border-blue-600'
-                        : 'border-gray-300 hover:bg-gray-50'
+                        : 'border-gray-300 hover:bg-gray-50 text-gray-700'
                     }`}
                     aria-label={`ไปหน้า ${page}`}
                     aria-current={currentPage === page ? 'page' : undefined}
@@ -83,7 +83,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, itemsP
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700"
           aria-label="ไปหน้าถัดไป"
         >
           ถัดไป
