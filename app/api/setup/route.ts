@@ -9,8 +9,6 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { execSync } from 'child_process'
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
@@ -110,6 +108,7 @@ export async function POST(request: NextRequest) {
         await seedPrisma.user.deleteMany().catch(() => {})
 
         // Hash passwords
+        const bcrypt = (await import('bcryptjs')).default
         const adminPasswordHash = await bcrypt.hash('admin123', 10)
         const techPasswordHash = await bcrypt.hash('password123', 10)
         const clientPasswordHash = await bcrypt.hash('client123', 10)
