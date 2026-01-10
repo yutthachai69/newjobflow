@@ -82,8 +82,12 @@ async function runPostinstall() {
     console.log('✅ Post-install setup completed!')
   } catch (error) {
     console.error('❌ Post-install setup failed:', error.message)
-    // ไม่ throw error เพื่อไม่ให้ build fail
-    console.warn('⚠️  Continuing... (you may need to seed manually)')
+    console.error('Error stack:', error.stack)
+    // ใน production ควร fail เพื่อให้รู้ว่ามีปัญหา
+    // แต่สำหรับ Vercel เราไม่ throw เพื่อไม่ให้ build fail
+    // ผู้ใช้สามารถใช้ /api/setup เพื่อ setup แทนได้
+    console.warn('⚠️  Continuing... (you can use POST /api/setup to setup database manually)')
+    console.warn('📝 Manual setup: POST https://your-app.vercel.app/api/setup')
   }
 }
 
