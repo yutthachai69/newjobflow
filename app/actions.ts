@@ -1567,35 +1567,43 @@ export async function markMessageAsRead(messageId: string) {
 }
 
 export async function login(formData: FormData) {
-  const username = formData.get('username') as string
-  const password = formData.get('password') as string
+  try {
+    const username = formData.get('username') as string
+    const password = formData.get('password') as string
 
-  if (!username || !password) {
-    redirect('/login?error=missing')
-  }
+    if (!username || !password) {
+      redirect('/login?error=missing')
+    }
 
-  // Rate limiting: Check both IP and username
-  // Note: In server actions, we need to get IP from headers
-  // For now, we'll use username as identifier (can be enhanced with request headers)
-  const rateLimitResult = checkRateLimit(username)
-  
-  if (!rateLimitResult.allowed) {
-    logSecurityEvent('LOGIN_RATE_LIMIT_EXCEEDED', {
-      username,
-      lockoutUntil: rateLimitResult.lockoutUntil,
-    })
-    redirect(`/login?error=rate_limit&retryAfter=${rateLimitResult.lockoutUntil ? Math.ceil((rateLimitResult.lockoutUntil.getTime() - Date.now()) / 1000) : 900}`)
-  }
+    // Rate limiting: Check both IP and username
+    // Note: In server actions, we need to get IP from headers
+    // For now, we'll use username as identifier (can be enhanced with request headers)
+    const rateLimitResult = checkRateLimit(username)
+    
+    if (!rateLimitResult.allowed) {
+      logSecurityEvent('LOGIN_RATE_LIMIT_EXCEEDED', {
+        username,
+        lockoutUntil: rateLimitResult.lockoutUntil,
+      })
+      redirect(`/login?error=rate_limit&retryAfter=${rateLimitResult.lockoutUntil ? Math.ceil((rateLimitResult.lockoutUntil.getTime() - Date.now()) / 1000) : 900}`)
+    }
 
-  // ค้นหา User
-  const user = await prisma.user.findUnique({
-    where: { username },
-  })
+    // ค้นหา User - เพิ่ม error handling สำหรับ database errors
+    let user
+    try {
+      user = await prisma.user.findUnique({
+        where: { username },
+      })
+    } catch (dbError: any) {
+      console.error('Database error during login:', dbError)
+      // ถ้า database ยังไม่มี table หรือ connection error
+      redirect('/login?error=database')
+    }
 
-  if (!user) {
-    recordFailedLogin(username)
-    redirect('/login?error=invalid')
-  }
+    if (!user) {
+      recordFailedLogin(username)
+      redirect('/login?error=invalid')
+    }
 
   // Auto-unlock expired accounts before checking
   const { autoUnlockExpiredAccounts } = await import('@/lib/account-lock')
@@ -1670,17 +1678,29 @@ export async function login(formData: FormData) {
     role: refreshedUser.role,
   })
 
-  // Redirect ตาม Role
-  const role = String(user.role)
-  if (role === 'ADMIN') {
-    redirect('/')
-  } else if (role === 'TECHNICIAN') {
-    redirect('/technician')
-  } else if (role === 'CLIENT') {
-    redirect('/')
-  }
+    // Redirect ตาม Role
+    const role = String(refreshedUser.role)
+    if (role === 'ADMIN') {
+      redirect('/')
+    } else if (role === 'TECHNICIAN') {
+      redirect('/technician')
+    } else if (role === 'CLIENT') {
+      redirect('/')
+    }
 
-  redirect('/')
+    redirect('/')
+  } catch (error: any) {
+    // Handle all errors and redirect to login page with error message
+    console.error('Login error:', error)
+    
+    // ถ้า error เป็น redirect (จาก Next.js) ให้ throw ต่อ
+    if (error && typeof error === 'object' && 'digest' in error && typeof error.digest === 'string' && error.digest.includes('NEXT_REDIRECT')) {
+      throw error
+    }
+    
+    // สำหรับ errors อื่นๆ redirect ไปยัง login page พร้อม error message
+    redirect('/login?error=server')
+  }
 }
 
 export async function logout() {

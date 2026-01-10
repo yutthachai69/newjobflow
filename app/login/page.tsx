@@ -62,6 +62,20 @@ export default async function LoginPage({ searchParams }: Props) {
               <p className="text-sm text-red-600">กรุณากรอกชื่อผู้ใช้และรหัสผ่าน</p>
             </div>
           )}
+          {error === 'database' && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <p className="text-sm text-yellow-800 font-medium">⚠️ ฐานข้อมูลยังไม่พร้อม</p>
+              <p className="text-sm text-yellow-700 mt-1">
+                กรุณา seed database ก่อน: <a href="/api/seed" target="_blank" className="underline">/api/seed</a>
+              </p>
+            </div>
+          )}
+          {error === 'server' && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <p className="text-sm text-red-600 font-medium">⚠️ เกิดข้อผิดพลาดของเซิร์ฟเวอร์</p>
+              <p className="text-sm text-red-600 mt-1">กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ</p>
+            </div>
+          )}
           
           <LoginForm />
 
