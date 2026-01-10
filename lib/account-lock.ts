@@ -46,12 +46,13 @@ export async function lockAccount(options: LockAccountOptions) {
     durationMinutes,
   })
 
-  logger.warn('Account locked', {
-    userId,
-    username: user.username,
-    reason,
-    lockedBy,
-  })
+  // ปิด warning log (ข้อมูลยังถูกบันทึกใน database อยู่)
+  // logger.warn('Account locked', {
+  //   userId,
+  //   username: user.username,
+  //   reason,
+  //   lockedBy,
+  // })
 
   return user
 }
@@ -77,11 +78,12 @@ export async function unlockAccount(options: UnlockAccountOptions) {
     unlockedBy,
   })
 
-  logger.info('Account unlocked', {
-    userId,
-    username: user.username,
-    unlockedBy,
-  })
+  // ปิด info log (ข้อมูลยังถูกบันทึกใน database อยู่)
+  // logger.info('Account unlocked', {
+  //   userId,
+  //   username: user.username,
+  //   unlockedBy,
+  // })
 
   return user
 }
@@ -122,11 +124,12 @@ export async function autoUnlockExpiredAccounts() {
     },
   })
 
-  if (result.count > 0) {
-    logger.info('Auto-unlocked expired accounts', {
-      count: result.count,
-    })
-  }
+  // ปิด info log สำหรับ auto-unlock
+  // if (result.count > 0) {
+  //   logger.info('Auto-unlocked expired accounts', {
+  //     count: result.count,
+  //   })
+  // }
 
   return result.count
 }

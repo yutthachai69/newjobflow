@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
+import EmptyState from "@/app/components/EmptyState"
 
 export default async function AdminDashboard() {
   const [
@@ -60,11 +61,11 @@ export default async function AdminDashboard() {
 
         {/* สถิติการ์ด */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-md hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">แอร์ทั้งหมด</p>
-                <p className="text-2xl font-semibold text-gray-900">{totalAssets}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalAssets}</p>
               </div>
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,11 +75,11 @@ export default async function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-md hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">งานที่ดำเนินการ</p>
-                <p className="text-2xl font-semibold text-gray-900">{activeWorkOrders}</p>
+                <p className="text-2xl font-bold text-gray-900">{activeWorkOrders}</p>
               </div>
               <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,11 +89,11 @@ export default async function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-md hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">เสร็จสิ้นวันนี้</p>
-                <p className="text-2xl font-semibold text-gray-900">{completedToday}</p>
+                <p className="text-2xl font-bold text-gray-900">{completedToday}</p>
               </div>
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,11 +103,11 @@ export default async function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-md hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">งานทั้งหมด</p>
-                <p className="text-2xl font-semibold text-gray-900">{totalWorkOrders}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalWorkOrders}</p>
               </div>
               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,56 +167,79 @@ export default async function AdminDashboard() {
             </Link>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    ชนิดงาน
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    สถานที่
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    วันที่
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    สถานะ
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    รายการ
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {recentWorkOrders.map((wo) => (
-                  <tr key={wo.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{wo.jobType}</td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {wo.site.name} ({wo.site.client.name})
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {new Date(wo.scheduledDate).toLocaleDateString("th-TH")}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          wo.status === "COMPLETED"
-                            ? "bg-green-100 text-green-800"
-                            : wo.status === "IN_PROGRESS"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {wo.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {wo.jobItems.length} รายการ
-                    </td>
+            {recentWorkOrders.length === 0 ? (
+              <div className="py-12">
+                <EmptyState
+                  icon="📋"
+                  title="ยังไม่มีงานล่าสุด"
+                  description="เมื่อมีการสร้างใบสั่งงานใหม่ จะแสดงที่นี่"
+                  actionLabel="สร้างใบสั่งงานใหม่"
+                  actionHref="/work-orders/new"
+                />
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      ชนิดงาน
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      สถานที่
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      วันที่
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      สถานะ
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      รายการ
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {recentWorkOrders.map((wo) => {
+                    const statusLabels = {
+                      OPEN: "เปิด",
+                      IN_PROGRESS: "กำลังทำ",
+                      COMPLETED: "เสร็จสิ้น",
+                      CANCELLED: "ยกเลิก",
+                    } as const
+                    
+                    return (
+                      <tr key={wo.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-gray-900">{wo.jobType}</td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {wo.site.name} ({wo.site.client.name})
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {new Date(wo.scheduledDate).toLocaleDateString("th-TH")}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              wo.status === "COMPLETED"
+                                ? "bg-green-100 text-green-800"
+                                : wo.status === "IN_PROGRESS"
+                                ? "bg-blue-100 text-blue-800"
+                                : wo.status === "CANCELLED"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {statusLabels[wo.status as keyof typeof statusLabels] || wo.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-600">
+                          {wo.jobItems.length} รายการ
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
@@ -223,25 +247,52 @@ export default async function AdminDashboard() {
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
           <Link
             href="/work-orders/new"
-            className="bg-blue-600 text-white rounded-lg border border-blue-700 shadow-sm p-6 hover:bg-blue-700 transition-colors text-center"
+            className="bg-blue-600 text-white rounded-lg border border-blue-700 shadow-sm p-4 hover:bg-blue-700 hover:shadow-md hover:scale-[1.02] transition-all duration-200 text-center group"
           >
-            <div className="font-semibold">สร้างใบสั่งงานใหม่</div>
+            <div className="flex flex-col items-center gap-2">
+              <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <div>
+                <div className="font-semibold">สร้างใบสั่งงานใหม่</div>
+                <div className="text-sm text-blue-100 mt-1">เริ่มต้นงานใหม่</div>
+              </div>
+            </div>
           </Link>
           <Link
             href="/assets"
-            className="bg-white text-gray-900 rounded-lg border border-gray-300 shadow-sm p-6 hover:bg-gray-50 transition-colors text-center"
+            className="bg-white text-gray-900 rounded-lg border border-gray-300 shadow-sm p-4 hover:bg-gray-50 hover:shadow-md hover:scale-[1.02] transition-all duration-200 text-center group"
           >
-            <div className="font-semibold">จัดการทะเบียนแอร์</div>
+            <div className="flex flex-col items-center gap-2">
+              <svg className="w-6 h-6 text-gray-700 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <div>
+                <div className="font-semibold">จัดการทะเบียนแอร์</div>
+                <div className="text-sm text-gray-500 mt-1">เพิ่ม แก้ไข ลบเครื่อง</div>
+              </div>
+            </div>
           </Link>
           <Link
             href="/locations"
-            className="bg-white text-gray-900 rounded-lg border border-gray-300 shadow-sm p-6 hover:bg-gray-50 transition-colors text-center"
+            className="bg-white text-gray-900 rounded-lg border border-gray-300 shadow-sm p-4 hover:bg-gray-50 hover:shadow-md hover:scale-[1.02] transition-all duration-200 text-center group"
           >
-            <div className="font-semibold">จัดการสถานที่</div>
+            <div className="flex flex-col items-center gap-2">
+              <svg className="w-6 h-6 text-gray-700 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <div>
+                <div className="font-semibold">จัดการสถานที่</div>
+                <div className="text-sm text-gray-500 mt-1">ตั้งค่าสถานที่ทำงาน</div>
+              </div>
+            </div>
           </Link>
         </div>
       </div>
     </div>
   )
 }
+
 

@@ -20,11 +20,12 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = checkRateLimit(ip, 'UPLOAD')
     
     if (!rateLimitResult.allowed) {
-      logger.warn('File upload rate limit exceeded', {
-        userId: user.id,
-        username: user.username,
-        ip,
-      })
+      // ปิด warning log (ข้อมูลยังถูกบันทึกใน database อยู่)
+      // logger.warn('File upload rate limit exceeded', {
+      //   userId: user.id,
+      //   username: user.username,
+      //   ip,
+      // })
       
       return NextResponse.json(
         { 

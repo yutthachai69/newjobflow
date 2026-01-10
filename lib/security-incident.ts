@@ -37,15 +37,15 @@ export async function createSecurityIncident(options: CreateIncidentOptions) {
       },
     })
 
-    // Log to console/logger
-    logger.security(`Security Incident: ${options.type}`, {
-      incidentId: incident.id,
-      severity: incident.severity,
-      description: incident.description,
-      userId: incident.userId,
-      username: incident.username,
-      ipAddress: incident.ipAddress,
-    })
+    // Log to console/logger (ปิดไว้แล้ว - ข้อมูลยังถูกบันทึกใน database อยู่)
+    // logger.security(`Security Incident: ${options.type}`, {
+    //   incidentId: incident.id,
+    //   severity: incident.severity,
+    //   description: incident.description,
+    //   userId: incident.userId,
+    //   username: incident.username,
+    //   ipAddress: incident.ipAddress,
+    // })
 
     return incident
   } catch (error) {
@@ -159,5 +159,6 @@ export async function getIncidentStatistics() {
     })),
   }
 }
+
 
 

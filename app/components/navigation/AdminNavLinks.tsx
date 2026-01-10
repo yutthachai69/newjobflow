@@ -19,7 +19,7 @@ export default function AdminNavLinks() {
         href="/"
         className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive("/") && pathname === "/"
-            ? "bg-blue-600 text-white"
+            ? "bg-blue-50 text-blue-700 border-b-2 border-blue-600 font-semibold"
             : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
         }`}
         aria-label="Dashboard"
@@ -30,7 +30,7 @@ export default function AdminNavLinks() {
         href="/work-orders"
         className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive("/work-orders")
-            ? "bg-blue-600 text-white"
+            ? "bg-blue-50 text-blue-700 border-b-2 border-blue-600 font-semibold"
             : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
         }`}
         aria-label="ใบสั่งงาน"
@@ -41,7 +41,7 @@ export default function AdminNavLinks() {
         href="/assets"
         className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive("/assets")
-            ? "bg-blue-600 text-white"
+            ? "bg-blue-50 text-blue-700 border-b-2 border-blue-600 font-semibold"
             : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
         }`}
         aria-label="ทะเบียนแอร์"
@@ -52,7 +52,7 @@ export default function AdminNavLinks() {
         href="/users"
         className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive("/users")
-            ? "bg-blue-600 text-white"
+            ? "bg-blue-50 text-blue-700 border-b-2 border-blue-600 font-semibold"
             : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
         }`}
         aria-label="ผู้ใช้งาน"
@@ -63,7 +63,7 @@ export default function AdminNavLinks() {
         href="/locations"
         className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive("/locations")
-            ? "bg-blue-600 text-white"
+            ? "bg-blue-50 text-blue-700 border-b-2 border-blue-600 font-semibold"
             : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
         }`}
         aria-label="สถานที่"
@@ -74,18 +74,18 @@ export default function AdminNavLinks() {
         href="/security-incidents"
         className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive("/security-incidents")
-            ? "bg-blue-600 text-white"
+            ? "bg-blue-50 text-blue-700 border-b-2 border-blue-600 font-semibold"
             : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
         }`}
         aria-label="เหตุการณ์ด้านความปลอดภัย"
       >
-        Security
+        ความปลอดภัย
       </Link>
       <Link
         href="/contact"
         className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive("/contact")
-            ? "bg-blue-600 text-white"
+            ? "bg-blue-50 text-blue-700 border-b-2 border-blue-600 font-semibold"
             : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
         }`}
         aria-label="ติดต่อเรา"

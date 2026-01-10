@@ -85,12 +85,13 @@ export function checkRateLimit(
   if (record.count >= maxLimit) {
     const retryAfter = Math.ceil((record.resetAt - now) / 1000)
     
-    logger.warn('Rate limit exceeded', {
-      identifier,
-      type,
-      count: record.count,
-      maxLimit,
-    })
+    // ปิด warning log สำหรับ rate limit (ยังทำงานได้ปกติ)
+    // logger.warn('Rate limit exceeded', {
+    //   identifier,
+    //   type,
+    //   count: record.count,
+    //   maxLimit,
+    // })
     
     return {
       allowed: false,

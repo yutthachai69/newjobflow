@@ -132,3 +132,4 @@ Prisma จะจัดการให้อัตโนมัติ
 3. `npx prisma generate`
 
 
+

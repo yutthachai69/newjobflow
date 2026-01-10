@@ -104,7 +104,8 @@ export function logSecurityEvent(eventType: string, details: Record<string, any>
   // Import logger here to avoid circular dependency
   const { logger } = require('./logger')
   
-  logger.security(eventType, details)
+  // ปิด security logs ใน console (ข้อมูลยังถูกบันทึกใน database อยู่)
+  // logger.security(eventType, details)
   
   // Record to database (async, don't await to avoid blocking)
   const { createSecurityIncident } = require('./security-incident')

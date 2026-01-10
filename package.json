@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:network": "next dev -H 0.0.0.0",
+    "dev:quiet": "node scripts/dev-quiet.js",
+    "dev:silent": "node scripts/dev-silent.js",
     "build": "next build",
     "start": "next start",
+    "start:prod": "npm run build && npm start",
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",

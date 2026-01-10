@@ -36,10 +36,15 @@ export interface LogEntry {
 class Logger {
   private isDevelopment: boolean
   private sentryDsn: string | undefined
+  private enableSecurityLogs: boolean
+  private enableInfoLogs: boolean
 
   constructor() {
     this.isDevelopment = process.env.NODE_ENV === 'development'
     this.sentryDsn = process.env.SENTRY_DSN
+    // ปิด security logs และ info logs โดย default (เปิดเฉพาะ errors และ warnings สำคัญ)
+    this.enableSecurityLogs = process.env.ENABLE_SECURITY_LOGS === 'true'
+    this.enableInfoLogs = process.env.ENABLE_INFO_LOGS === 'true'
   }
 
   /**
@@ -135,6 +140,10 @@ class Logger {
    * Log info message
    */
   info(message: string, context?: LogContext) {
+    // ปิด info logs โดย default (เปิดเมื่อตั้ง ENABLE_INFO_LOGS=true)
+    if (!this.enableInfoLogs) {
+      return
+    }
     const entry = this.createLogEntry('info', message, context)
     this.writeLog(entry)
   }
@@ -166,6 +175,11 @@ class Logger {
    * Log security event
    */
   security(eventType: string, details: Record<string, any>) {
+    // ปิด security logs โดย default (เปิดเมื่อตั้ง ENABLE_SECURITY_LOGS=true)
+    // ข้อมูลยังถูกบันทึกใน database อยู่ แต่ไม่แสดงใน console
+    if (!this.enableSecurityLogs) {
+      return
+    }
     this.warn(`[SECURITY] ${eventType}`, {
       eventType,
       ...details,
@@ -203,5 +217,6 @@ export function createLogContext(
 
   return context
 }
+
 
 

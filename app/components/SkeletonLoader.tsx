@@ -24,3 +24,4 @@ export default function SkeletonLoader({ rows = 5, columns = 4 }: Props) {
 }
 
 
+
