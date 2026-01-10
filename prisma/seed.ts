@@ -64,7 +64,7 @@ async function main() {
   const clientUser = await prisma.user.create({
     data: {
       username: 'client1',
-      password: 'client123', // ของจริงต้อง Hash
+      password: clientPasswordHash, // Fixed: ใช้ hashed password
       fullName: 'ผู้จัดการสาขาสุขุมวิท',
       role: 'CLIENT',
       siteId: site.id  // ผูกกับ Site แทน Client
