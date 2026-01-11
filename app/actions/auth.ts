@@ -34,10 +34,17 @@ export async function login(formData: FormData) {
       redirect(`/login?error=rate_limit&retryAfter=${rateLimitResult.lockoutUntil ? Math.ceil((rateLimitResult.lockoutUntil.getTime() - Date.now()) / 1000) : 900}`)
     }
 
-    // ค้นหา User
-    const user = await prisma.user.findUnique({
-      where: { username },
-    })
+    // ค้นหา User - เพิ่ม error handling สำหรับ database errors
+    let user
+    try {
+      user = await prisma.user.findUnique({
+        where: { username },
+      })
+    } catch (dbError: any) {
+      console.error('Database error during login:', dbError)
+      // ถ้า database ยังไม่มี table หรือ connection error
+      redirect('/login?error=database')
+    }
 
     if (!user) {
       recordFailedLogin(username)
