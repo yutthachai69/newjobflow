@@ -13,191 +13,19 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 
 export async function POST(request: NextRequest) {
+  // อนุญาตให้เรียกได้ใน production (สำหรับ initial setup)
+  if (process.env.NODE_ENV === 'production' && process.env.SEED_SECRET) {
+    const authHeader = request.headers.get('authorization')
+    if (authHeader !== `Bearer ${process.env.SEED_SECRET}`) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+  }
+
   try {
-    // อนุญาตให้เรียกได้ใน production (สำหรับ initial setup)
-    if (process.env.NODE_ENV === 'production' && process.env.SEED_SECRET) {
-      const authHeader = request.headers.get('authorization')
-      if (authHeader !== `Bearer ${process.env.SEED_SECRET}`) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        )
-      }
-    }
-
     console.log('🔧 Starting complete database setup...')
-    
-    // Fallback function สำหรับ inline SQL (ถ้าไฟล์ consolidated.sql ไม่มี)
-    function getInlineMigrationSQL(): string {
-      return `
--- Consolidated Migration SQL (Inline Fallback)
-PRAGMA foreign_keys=ON;
-
-CREATE TABLE IF NOT EXISTS "Client" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "contactInfo" TEXT,
-    "logoUrl" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS "Site" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "address" TEXT,
-    "latitude" REAL,
-    "longitude" REAL,
-    "clientId" TEXT NOT NULL,
-    CONSTRAINT "Site_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS "User" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "username" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
-    "fullName" TEXT,
-    "role" TEXT NOT NULL DEFAULT 'TECHNICIAN',
-    "locked" INTEGER NOT NULL DEFAULT 0,
-    "lockedUntil" DATETIME,
-    "lockedReason" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "siteId" TEXT,
-    CONSTRAINT "User_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Site" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS "User_username_key" ON "User"("username");
-CREATE INDEX IF NOT EXISTS "User_role_idx" ON "User"("role");
-CREATE INDEX IF NOT EXISTS "User_locked_lockedUntil_idx" ON "User"("locked", "lockedUntil");
-CREATE INDEX IF NOT EXISTS "User_siteId_idx" ON "User"("siteId");
-
-CREATE TABLE IF NOT EXISTS "Building" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "siteId" TEXT NOT NULL,
-    CONSTRAINT "Building_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Site" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS "Floor" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "buildingId" TEXT NOT NULL,
-    CONSTRAINT "Floor_buildingId_fkey" FOREIGN KEY ("buildingId") REFERENCES "Building" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS "Room" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "floorId" TEXT NOT NULL,
-    CONSTRAINT "Room_floorId_fkey" FOREIGN KEY ("floorId") REFERENCES "Floor" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS "Asset" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "qrCode" TEXT NOT NULL,
-    "brand" TEXT,
-    "model" TEXT,
-    "serialNo" TEXT,
-    "btu" INTEGER,
-    "installDate" DATETIME,
-    "status" TEXT NOT NULL DEFAULT 'ACTIVE',
-    "roomId" TEXT NOT NULL,
-    CONSTRAINT "Asset_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "Room" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS "Asset_qrCode_key" ON "Asset"("qrCode");
-CREATE INDEX IF NOT EXISTS "Asset_status_idx" ON "Asset"("status");
-CREATE INDEX IF NOT EXISTS "Asset_roomId_idx" ON "Asset"("roomId");
-
-CREATE TABLE IF NOT EXISTS "WorkOrder" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "jobType" TEXT NOT NULL,
-    "scheduledDate" DATETIME NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'OPEN',
-    "siteId" TEXT NOT NULL,
-    "assignedTeam" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "WorkOrder_siteId_fkey" FOREIGN KEY ("siteId") REFERENCES "Site" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS "WorkOrder_status_idx" ON "WorkOrder"("status");
-CREATE INDEX IF NOT EXISTS "WorkOrder_scheduledDate_idx" ON "WorkOrder"("scheduledDate");
-CREATE INDEX IF NOT EXISTS "WorkOrder_siteId_idx" ON "WorkOrder"("siteId");
-
-CREATE TABLE IF NOT EXISTS "JobItem" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "status" TEXT NOT NULL DEFAULT 'PENDING',
-    "workOrderId" TEXT NOT NULL,
-    "assetId" TEXT NOT NULL,
-    "technicianId" TEXT,
-    "techNote" TEXT,
-    "startTime" DATETIME,
-    "endTime" DATETIME,
-    CONSTRAINT "JobItem_workOrderId_fkey" FOREIGN KEY ("workOrderId") REFERENCES "WorkOrder" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "JobItem_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "Asset" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "JobItem_technicianId_fkey" FOREIGN KEY ("technicianId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS "JobItem_technicianId_idx" ON "JobItem"("technicianId");
-CREATE INDEX IF NOT EXISTS "JobItem_status_idx" ON "JobItem"("status");
-CREATE INDEX IF NOT EXISTS "JobItem_workOrderId_idx" ON "JobItem"("workOrderId");
-CREATE INDEX IF NOT EXISTS "JobItem_assetId_idx" ON "JobItem"("assetId");
-
-CREATE TABLE IF NOT EXISTS "JobPhoto" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "url" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "jobItemId" TEXT NOT NULL,
-    CONSTRAINT "JobPhoto_jobItemId_fkey" FOREIGN KEY ("jobItemId") REFERENCES "JobItem" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS "ContactInfo" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "email" TEXT NOT NULL DEFAULT 'support@airservice.com',
-    "phone" TEXT NOT NULL DEFAULT '02-XXX-XXXX',
-    "hours" TEXT NOT NULL DEFAULT 'จันทร์-ศุกร์ 08:00-17:00 น.',
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS "ContactMessage" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "userId" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "message" TEXT NOT NULL,
-    "isRead" INTEGER NOT NULL DEFAULT 0,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ContactMessage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS "ContactMessage_isRead_idx" ON "ContactMessage"("isRead");
-CREATE INDEX IF NOT EXISTS "ContactMessage_createdAt_idx" ON "ContactMessage"("createdAt");
-CREATE INDEX IF NOT EXISTS "ContactMessage_userId_idx" ON "ContactMessage"("userId");
-
-CREATE TABLE IF NOT EXISTS "SecurityIncident" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "type" TEXT NOT NULL,
-    "severity" TEXT NOT NULL DEFAULT 'MEDIUM',
-    "description" TEXT NOT NULL,
-    "metadata" TEXT,
-    "userId" TEXT,
-    "username" TEXT,
-    "ipAddress" TEXT,
-    "userAgent" TEXT,
-    "resolved" INTEGER NOT NULL DEFAULT 0,
-    "resolvedAt" DATETIME,
-    "resolvedBy" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS "SecurityIncident_type_idx" ON "SecurityIncident"("type");
-CREATE INDEX IF NOT EXISTS "SecurityIncident_severity_idx" ON "SecurityIncident"("severity");
-CREATE INDEX IF NOT EXISTS "SecurityIncident_resolved_idx" ON "SecurityIncident"("resolved");
-CREATE INDEX IF NOT EXISTS "SecurityIncident_createdAt_idx" ON "SecurityIncident"("createdAt");
-CREATE INDEX IF NOT EXISTS "SecurityIncident_userId_idx" ON "SecurityIncident"("userId");
-      `
-    }
     
     const results: string[] = []
     let schemaCreated = false
@@ -224,9 +52,8 @@ CREATE INDEX IF NOT EXISTS "SecurityIncident_userId_idx" ON "SecurityIncident"("
           try {
             sqlContent = readFileSync(sqlPath, 'utf-8')
           } catch (fileError: any) {
-            // ถ้าไฟล์ไม่มี ให้ใช้ SQL inline
-            console.warn('⚠️  Consolidated SQL file not found, using inline SQL...')
-            sqlContent = getInlineMigrationSQL()
+            // ถ้าไฟล์ไม่มี ให้ throw error (ไฟล์ควรจะมีอยู่แล้ว)
+            throw new Error(`Consolidated SQL file not found at ${sqlPath}. Please ensure prisma/migrations/consolidated.sql exists.`)
           }
           
           // Split SQL statements (by semicolon + newline)
@@ -398,19 +225,18 @@ CREATE INDEX IF NOT EXISTS "SecurityIncident_userId_idx" ON "SecurityIncident"("
       
       await setupPrisma.$disconnect()
 
-    return NextResponse.json({
-      success: true,
-      message: 'Database setup completed successfully!',
-      results,
-      schemaCreated,
-      seedCompleted,
-      users: {
-        admin: { username: 'admin', password: 'admin123' },
-        technician: { username: 'tech1', password: 'password123' },
-        client: { username: 'client1', password: 'client123' }
-      }
-    })
-
+      return NextResponse.json({
+        success: true,
+        message: 'Database setup completed successfully!',
+        results,
+        schemaCreated,
+        seedCompleted,
+        users: {
+          admin: { username: 'admin', password: 'admin123' },
+          technician: { username: 'tech1', password: 'password123' },
+          client: { username: 'client1', password: 'client123' }
+        }
+      })
     } catch (error: any) {
       console.error('❌ Setup error:', error)
       if (setupPrisma) {
